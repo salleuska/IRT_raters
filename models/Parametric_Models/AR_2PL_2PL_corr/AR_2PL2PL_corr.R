@@ -1,6 +1,9 @@
 rm(list=ls())
+# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+
 library(nimble)
-setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+library(here)
+
 
 Data  <- read.csv("Data_AR_2PL2PL.csv")
 

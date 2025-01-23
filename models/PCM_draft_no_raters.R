@@ -14,7 +14,7 @@ modelCode =  nimbleCode({
 	{
 		for(j in 1:nItems)
 		{
-	         ## data generative mechanism
+	     ## data generative mechanism
 		 Y[i,j] ~ dcat(prob[i,j,1:K])
 		}
 	 ## students' ability
