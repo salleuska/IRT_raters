@@ -1,6 +1,9 @@
 rm(list=ls())
+# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+
 library(nimble)
-setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally/SemiPara")
+library(here)
+
 
 Data  <- readRDS("Data_2PL1PL.RData")
 #Data  <- readRDS("OCSE_Long.RData")
