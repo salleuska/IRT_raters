@@ -3,7 +3,7 @@ rm(list=ls())
 
 library(nimble)
 library(here)
-
+source("functions/estimateDPdensity.R")
 
 Data  <- read.csv("data/Data_2PL2PL.csv")
 # Data  <- readRDS("OCSE_Long.RData")
@@ -109,7 +109,8 @@ conf2PL1PL          <- configureMCMC(model2PL1PL, monitors = monitors)
 modelMCMC           <- buildMCMC(conf2PL1PL)
 cModelMCMC          <- compileNimble(modelMCMC, project = model2PL1PL)
 
-system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+# system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+system.time(samples <- runMCMC(cModelMCMC, niter=10000, nburnin = 5000, thin=1))
 
 ################################################################################
 
@@ -147,3 +148,14 @@ for(i in 1:max(Data$RRi))
 calculateWAIC(samples, model2PL1PL)
 
 ################################################################################
+## Plot density estimates for the latent traits
+grid <- seq(-10, 10, len = 200) # 
+res <- estimateDPdensity(samples, grid = grid, nIndividuals =  constants$P)
+
+
+## pointwise estimate of the density for standardized log grid
+plot(grid, apply(res, 2, mean), 
+  type = "l", lwd = 2, col = 'black', ylim = c(0, 0.5)) 
+lines(grid, apply(res, 2, quantile, 0.025), lty = 2, col = 'black') 
+lines(grid, apply(res, 2, quantile, 0.975), lty = 2, col = 'black') 
+
