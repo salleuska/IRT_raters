@@ -5,16 +5,15 @@ library(nimble)
 library(here)
 
 
-Data  <- readRDS("Data_2PL1PL.RData")
-#Data  <- readRDS("OCSE_Long.RData")
-
+Data  <- read.csv("data/Data_2PL2PL.csv")
+# Data  <- readRDS("OCSE_Long.RData")
 
 # ----
 code2PL1PL <- nimbleCode({
   # Likelihood
   for(n in 1:tot){
     
-    y[n,1] ~ dcat(ppi[n,1:K])
+    y[n] ~ dcat(ppi[n,1:K])
     
     pic[n,1]              <- 0
     pi[n,1]               <- 0
