@@ -5,7 +5,7 @@ library(nimble)
 library(here)
 
 
-Data  <- read.csv("Data_2PL2PL.csv")
+Data  <- read.csv("data/Data_2PL2PL.csv")
 
 
 # ----

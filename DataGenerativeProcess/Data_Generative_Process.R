@@ -2,22 +2,24 @@
 # https://github.com/salleuska/IRT_raters
 # ------------------------------ DATA GENERATING PROCESS -------------------------------------
 rm(list=ls())
-setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+## SP using library(here) so we can use relative paths
+
+library(here)
 library(MASS)
 
-N               = 100                                                           # Subjects sample size
-I               = 5                                                             # Number of items
-R               = 5                                                             # Number of raters
-                                                                        
-K               = 4                                                             # Number of categories
-C               = 1                                                             # Number of students' clusters
-                                                          
-sp              = 3                                                             # number of subjects per rater
+N               = 100                            # Subjects sample size
+I               = 5                              # Number of items
+R               = 5                              # Number of raters
+                                         
+K               = 4                              # Number of categories
+C               = 1                              # Number of students' clusters
+                           
+sp              = 3                              # number of subjects per rater
 tot             = sp * N * I
 
 set.seed(25)
 # ------------------------------------------------------------------------------
-
 
 generateData <- function( mu, sigma, c_p_s_s, N, R, tot, PPi, II, RRi, ARi, lambda, beta, delta, R_tau, R_phi) {
   
@@ -74,7 +76,7 @@ curve(c_p_s_s[1]*dnorm(x,mu_s[1],sqrt(sigma_s[1]))
       + c_p_s_s[2]*dnorm(x,mu_s[2],sqrt(sigma_s[2])),from=min(Grid_s),to=max(Grid_s),col="red",lwd=2,
       xlab=quote(eta),ylab="")
 
-
+dev.off()
 # ------------ Raters' Features Distribution ---------------------------
 # Rater's features: systematic bias, autoregressive coefficient, consistency, respectively. 
 

@@ -11,7 +11,9 @@ Make sure to install the following R packages and relative dependencies.
 
 
 ```{}
-install.packages("nimble")
+install.packages("nimble")  ## to run models
+install.packages("here")	## to use relative paths within the folder
+
 ```
 
 #### Folders 

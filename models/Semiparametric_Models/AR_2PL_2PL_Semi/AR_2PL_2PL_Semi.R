@@ -125,7 +125,9 @@ conf2PL2PL          <- configureMCMC(model2PL2PL, monitors = monitors)
 modelMCMC           <- buildMCMC(conf2PL2PL)
 cModelMCMC          <- compileNimble(modelMCMC, project = model2PL2PL)
 
-system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+# system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+
+system.time(samples <- runMCMC(cModelMCMC, niter=10000, nburnin = 5000, thin=1))
 
 ################################################################################
 
