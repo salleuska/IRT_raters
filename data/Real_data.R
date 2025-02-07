@@ -1,8 +1,7 @@
-rm(list=ls())
-library(nimble)
-setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+library(here)
+# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
 
-Data  <- read.csv("real_data.csv")
+Data  <- read.csv("data/OSCE_data.csv")
 
 P         = 30                                                                  # number of subjects
 
@@ -27,30 +26,30 @@ N   = length(scores)
 R   = length(table(RRi))
 I   = length(table(II))
 
-vec = list(scores,II,RRi,PPi,K,N,R,I)
+vec = list(scores, II,RRi,PPi,K,N,R,I)
 
-write.csv(vec, file="OCSE_Long.csv")
+saveRDS(vec, "data/OCSE.rds")
 
 
-ARi = rep(NA,N)
+# ARi = rep(NA,N)
   
-  for(i in 1:R){
-    working                                   = which(RRi==i)
-    names_p                                   = c("0", names(table(PPi[working])))
+#   for(i in 1:R){
+#     working                                   = which(RRi==i)
+#     names_p                                   = c("0", names(table(PPi[working])))
     
-    for(j in 2:length(names_p)){
-      ARi[which(PPi==names_p[j] & RRi == i)]    = names_p[j-1]
-    }
+#     for(j in 2:length(names_p)){
+#       ARi[which(PPi==names_p[j] & RRi == i)]    = names_p[j-1]
+#     }
   
-    }
+#     }
 
-prova=cbind( PPi[which(RRi==1)], RRi[which(RRi==1)], ARi[which(RRi==1)])
-prova[20:600,]
+# prova=cbind( PPi[which(RRi==1)], RRi[which(RRi==1)], ARi[which(RRi==1)])
+# prova[20:600,]
 
-vec = list(scores,II,RRi,PPi,ARi,K,N,R,I)
+# vec = list(scores,II,RRi,PPi,ARi,K,N,R,I)
 
 
-write.csv(vec, file="OCSE_Long.csv")
+# write.csv(vec, file="data/OCSE_Long.csv")
 
 
 
