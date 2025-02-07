@@ -1,8 +1,8 @@
 ##############################################################################################
 # https://github.com/salleuska/IRT_raters
 # ------------------------------ DATA GENERATING PROCESS -------------------------------------
-rm(list=ls())
-setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
+# rm(list=ls())
+# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
 library(MASS)
 
 N               = 100                                                           # Subjects sample size
@@ -21,7 +21,7 @@ set.seed(25)
 
 generateData <- function( mu, sigma, c_p_s_s, N, R, tot, PPi, II, RRi, ARi, lambda, beta, delta, R_tau, R_phi) {
   
-  y              = matrix(0, nrow=tot, ncol=1)
+  y              = numeric(tot)
   c_s            = matrix(0, nrow=R,   ncol=1)
   eta            = matrix(0, nrow=R,   ncol=1)
   pic            = matrix(0, nrow=tot, ncol=K)
@@ -241,5 +241,5 @@ plot(table(Data$y),ylab="frequency",main="observed scores",ylim=c(0,1000))
 
 str(Data)
 
-saveRDS(Data, file="Data_AR_2PL2PL.RData")
+saveRDS(Data, file="data/Data_AR_2PL2PL.rds")
 
