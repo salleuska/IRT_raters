@@ -1,12 +1,11 @@
-rm(list=ls())
+# rm(list=ls())
 # setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
 
 library(nimble)
 library(here)
 
 
-Data  <- read.csv("Data_AR_2PL2PL.csv")
-
+Data  <- readRDS("data/Data_AR_2PL2PL.rds")
 
 # ----
 code2PL2PL <- nimbleCode({
@@ -70,7 +69,7 @@ code2PL2PL <- nimbleCode({
 constants <- list(I = max(Data$II), P = max(Data$PPi),R = max(Data$RRi), K=max(Data$y), 
                   tot = length(Data$y), II=Data$II , PPi=Data$PPi, RRi=Data$RRi, ARi=Data$ARi)
 
-data <- list(y = Data$y) #check
+data <- list(y = Data$y)
 
 set.seed(2)
 
@@ -100,7 +99,9 @@ conf2PL2PL          <- configureMCMC(model2PL2PL, monitors = monitors)
 modelMCMC           <- buildMCMC(conf2PL2PL)
 cModelMCMC          <- compileNimble(modelMCMC, project = model2PL2PL)
 
-system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+system.time(samples <- runMCMC(cModelMCMC, niter=1000, nburnin = 500, thin=1))
+
+samplesSummary(samples)
 
 ################################################################################
 
