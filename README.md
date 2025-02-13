@@ -28,3 +28,19 @@ install.packages("MASS")	## simulate from a mult. normal distribution
 - `output` folder that collects posterior samples (and other info) 
 - `functions` helper functions to process posterior samples
 - `uto_el_al` folder containing README and codes of (Uto et al. paper)[https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0309887#references]
+
+### Run a model -- to update the script
+
+The script `1_runNimbleModel` is a parametrized R script that can be run from bash/terminal. Conceptually similar to R functions, as arguments are passed to the script. Run from the terminal is going to be convenient for simulations (likely will run those on a cluster). 
+
+
+`Rscript 1_runNimbleModel.R --model --dirResults --data --niter --nburnin `
+
+
+```{}
+ --model=           # path to the model code to to run  
+ --dirResults=      # directory to results  
+ --data=            # directory to data   
+ --niter=           # number of iterations  
+ --nburnin=         # number of burnin iteration  
+ ```
