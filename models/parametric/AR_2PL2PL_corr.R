@@ -1,11 +1,7 @@
-rm(list=ls())
-# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
-
-library(nimble)
-library(here)
-
-Data  <- readRDS("data/Data_AR_2PL2PL.rds")
-
+##-----------------------------------------#
+## AR [item] 2PL [rater] 2PL model 
+## Correlated raters' features
+##-----------------------------------------#
 # ---- 
 uppertri_mult_diag <- nimbleFunction(
   run = function(mat = double(2), vec = double(1)) {
@@ -18,7 +14,7 @@ uppertri_mult_diag <- nimbleFunction(
   })
 
 # ----
-code2PL2PL <- nimbleCode({
+modelCode <- nimbleCode({
   # Likelihood
   for(n in 1:tot){
     
@@ -82,7 +78,6 @@ data <- list(y = Data$y) #check
 
 set.seed(2)
 
-
 r_features = matrix(NA,constants$R,3)
 r_features[,1]      = rnorm(constants$R, 0, 3)
 r_features[,2]      = rep(0, constants$R)
@@ -101,65 +96,65 @@ inits <- list(beta                = rnorm(constants$I, 0, 3),
 monitors = c("beta","delta", "l_lambda","r_features", "Ustar", "eta")
 
 
-#----
+# #----
 
-model2PL2PL         <- nimbleModel(code2PL2PL, constants, data, inits)
+# model2PL2PL         <- nimbleModel(modelCode, constants, data, inits)
 
-cmodel2PL2PL        <- compileNimble(model2PL2PL)
+# cmodel2PL2PL        <- compileNimble(model2PL2PL)
 
-conf2PL2PL          <- configureMCMC(model2PL2PL, monitors = monitors)
+# conf2PL2PL          <- configureMCMC(model2PL2PL, monitors = monitors)
 
-modelMCMC           <- buildMCMC(conf2PL2PL)
-cModelMCMC          <- compileNimble(modelMCMC, project = model2PL2PL)
+# modelMCMC           <- buildMCMC(conf2PL2PL)
+# cModelMCMC          <- compileNimble(modelMCMC, project = model2PL2PL)
 
-system.time(samples <- runMCMC(cModelMCMC, niter=1000, nburnin = 500, thin=1 ))
+# system.time(samples <- runMCMC(cModelMCMC, niter=1000, nburnin = 500, thin=1 ))
 
-################################################################################
+# ################################################################################
 
-betaCols <- grep("beta", colnames(samples))
-deltaCols <- grep("delta", colnames(samples))
-lambdaCols <- grep("lambda", colnames(samples))
-tauCols <- grep("r_features", colnames(samples))
+# betaCols <- grep("beta", colnames(samples))
+# deltaCols <- grep("delta", colnames(samples))
+# lambdaCols <- grep("lambda", colnames(samples))
+# tauCols <- grep("r_features", colnames(samples))
 
-samplesSummary(samples[, c(betaCols)])
-samplesSummary(samples[, c(deltaCols)])
-samplesSummary(samples[, c(lambdaCols)])
-
-
-samplesSummary(samples[, c(tauCols)])
-samplesSummary(samples[, c(phiCols)])
+# samplesSummary(samples[, c(betaCols)])
+# samplesSummary(samples[, c(deltaCols)])
+# samplesSummary(samples[, c(lambdaCols)])
 
 
-#--- Trace
-K = max(Data$y)
-R = max(Data$RRi)
-I = max(Data$II)
-
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:I)
-  ts.plot(samples[ , betaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ betaCols[i]])
-
-par(mfrow = c(1, 2), cex = 1.1)
-for(i in 1:(K-1))
-  ts.plot(samples[ , deltaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ deltaCols[i]])
-
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:I)
-  ts.plot(samples[ , lambdaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ lambdaCols[i]])
+# samplesSummary(samples[, c(tauCols)])
+# samplesSummary(samples[, c(phiCols)])
 
 
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:(2*R))
-  ts.plot(samples[ , tauCols[i]], xlab = 'iteration', ylab = colnames(samples)[ tauCols[i]])
+# #--- Trace
+# K = max(Data$y)
+# R = max(Data$RRi)
+# I = max(Data$II)
 
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:R)
-  ts.plot(samples[ , phiCols[i]], xlab = 'iteration', ylab = colnames(samples)[ phiCols[i]])
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:I)
+#   ts.plot(samples[ , betaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ betaCols[i]])
 
-################################################################################
-calculateWAIC(samples, model2PL2PL)
+# par(mfrow = c(1, 2), cex = 1.1)
+# for(i in 1:(K-1))
+#   ts.plot(samples[ , deltaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ deltaCols[i]])
 
-################################################################################
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:I)
+#   ts.plot(samples[ , lambdaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ lambdaCols[i]])
+
+
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:(2*R))
+#   ts.plot(samples[ , tauCols[i]], xlab = 'iteration', ylab = colnames(samples)[ tauCols[i]])
+
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:R)
+#   ts.plot(samples[ , phiCols[i]], xlab = 'iteration', ylab = colnames(samples)[ phiCols[i]])
+
+# ################################################################################
+# calculateWAIC(samples, model2PL2PL)
+
+# ################################################################################
 
 
 
