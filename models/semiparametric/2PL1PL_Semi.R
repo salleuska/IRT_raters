@@ -1,12 +1,7 @@
-library(nimble)
-library(here)
-source("functions/estimateDPdensity.R")
-
-# Data  <- read.csv("data/Data_2PL2PL.csv")
-Data  <- read.csv("data/OCSE_long.csv")
-   
-# ----
-code2PL1PL <- nimbleCode({
+##-----------------------------------------#
+## Semiparametric - [item] 2PL [rater] 1PL model 
+##-----------------------------------------#
+modelCode <- nimbleCode({
   # Likelihood
   for(n in 1:tot){
     
@@ -95,64 +90,64 @@ monitors = c("beta","delta", "lambda","tau", "eta","zi", "muTilde", "s2Tilde", "
 
 
 
-#----
+# #----
 
-model2PL1PL         <- nimbleModel(code2PL1PL, constants, data, inits)
+# model2PL1PL         <- nimbleModel(code2PL1PL, constants, data, inits)
 
-cmodel2PL1PL        <- compileNimble(model2PL1PL)
+# cmodel2PL1PL        <- compileNimble(model2PL1PL)
 
-conf2PL1PL          <- configureMCMC(model2PL1PL, monitors = monitors)
+# conf2PL1PL          <- configureMCMC(model2PL1PL, monitors = monitors)
 
-modelMCMC           <- buildMCMC(conf2PL1PL)
-cModelMCMC          <- compileNimble(modelMCMC, project = model2PL1PL)
+# modelMCMC           <- buildMCMC(conf2PL1PL)
+# cModelMCMC          <- compileNimble(modelMCMC, project = model2PL1PL)
 
-# system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
-system.time(samples <- runMCMC(cModelMCMC, niter=10000, nburnin = 5000, thin=1))
+# # system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+# system.time(samples <- runMCMC(cModelMCMC, niter=10000, nburnin = 5000, thin=1))
 
-################################################################################
+# ################################################################################
 
-betaCols <- grep("beta", colnames(samples))
-deltaCols <- grep("delta", colnames(samples))
-lambdaCols <- grep("lambda", colnames(samples))
+# betaCols <- grep("beta", colnames(samples))
+# deltaCols <- grep("delta", colnames(samples))
+# lambdaCols <- grep("lambda", colnames(samples))
 
-tauCols <- grep("tau", colnames(samples))
+# tauCols <- grep("tau", colnames(samples))
 
-samplesSummary(samples[, c(betaCols)])
-samplesSummary(samples[, c(deltaCols)])
+# samplesSummary(samples[, c(betaCols)])
+# samplesSummary(samples[, c(deltaCols)])
 
-samplesSummary(samples[, c(lambdaCols)])
-samplesSummary(samples[, c(tauCols)])
-
-
-#--- Trace
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:4)
-  ts.plot(samples[ , betaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ betaCols[i]])
-
-par(mfrow = c(1, 2), cex = 1.1)
-for(i in 1:(max(Data$y)-1))
-  ts.plot(samples[ , deltaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ deltaCols[i]])
-
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:4)
-  ts.plot(samples[ , lambdaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ lambdaCols[i]])
-
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:max(Data$RRi))
-  ts.plot(samples[ , tauCols[i]], xlab = 'iteration', ylab = colnames(samples)[ tauCols[i]])
-
-################################################################################
-calculateWAIC(samples, model2PL1PL)
-
-################################################################################
-## Plot density estimates for the latent traits
-grid <- seq(-10, 10, len = 200) # 
-res <- estimateDPdensity(samples, grid = grid, nIndividuals =  constants$P)
+# samplesSummary(samples[, c(lambdaCols)])
+# samplesSummary(samples[, c(tauCols)])
 
 
-## pointwise estimate of the density for standardized log grid
-plot(grid, apply(res, 2, mean), 
-  type = "l", lwd = 2, col = 'black', ylim = c(0, 0.5)) 
-lines(grid, apply(res, 2, quantile, 0.025), lty = 2, col = 'black') 
-lines(grid, apply(res, 2, quantile, 0.975), lty = 2, col = 'black') 
+# #--- Trace
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:4)
+#   ts.plot(samples[ , betaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ betaCols[i]])
+
+# par(mfrow = c(1, 2), cex = 1.1)
+# for(i in 1:(max(Data$y)-1))
+#   ts.plot(samples[ , deltaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ deltaCols[i]])
+
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:4)
+#   ts.plot(samples[ , lambdaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ lambdaCols[i]])
+
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:max(Data$RRi))
+#   ts.plot(samples[ , tauCols[i]], xlab = 'iteration', ylab = colnames(samples)[ tauCols[i]])
+
+# ################################################################################
+# calculateWAIC(samples, model2PL1PL)
+
+# ################################################################################
+# ## Plot density estimates for the latent traits
+# grid <- seq(-10, 10, len = 200) # 
+# res <- estimateDPdensity(samples, grid = grid, nIndividuals =  constants$P)
+
+
+# ## pointwise estimate of the density for standardized log grid
+# plot(grid, apply(res, 2, mean), 
+#   type = "l", lwd = 2, col = 'black', ylim = c(0, 0.5)) 
+# lines(grid, apply(res, 2, quantile, 0.025), lty = 2, col = 'black') 
+# lines(grid, apply(res, 2, quantile, 0.975), lty = 2, col = 'black') 
 

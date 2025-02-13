@@ -1,12 +1,7 @@
-rm(list=ls())
-# setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
-
-library(nimble)
-library(here)
-
-
-Data  <- readRDS("Data_AR_2PL2PL.RData")
-#Data  <- readRDS("OCSE_Long.RData")
+##-----------------------------------------#
+## Semiparametric - AR - [item] 2PL [rater] 2PL model 
+## Correlated raters' features
+##-----------------------------------------#
 
 # ---- 
 uppertri_mult_diag <- nimbleFunction(
@@ -20,7 +15,7 @@ uppertri_mult_diag <- nimbleFunction(
   })
 
 # ----
-code2PL2PL <- nimbleCode({
+modelCode <- nimbleCode({
   # Likelihood
   for(n in 1:tot){
     
@@ -125,91 +120,91 @@ inits <- list(beta                = rnorm(constants$I, 0, 3),
 monitors = c("beta","delta", "l_lambda","r_features", "U", "eta","zi", "muTilde", "s2Tilde", "alpha")
 
 
-#----
+# #----
 
-model2PL2PL         <- nimbleModel(code2PL2PL, constants, data, inits)
+# model2PL2PL         <- nimbleModel(code2PL2PL, constants, data, inits)
 
-cmodel2PL2PL        <- compileNimble(model2PL2PL)
+# cmodel2PL2PL        <- compileNimble(model2PL2PL)
 
-conf2PL2PL          <- configureMCMC(model2PL2PL, monitors = monitors)
+# conf2PL2PL          <- configureMCMC(model2PL2PL, monitors = monitors)
 
-modelMCMC           <- buildMCMC(conf2PL2PL)
-cModelMCMC          <- compileNimble(modelMCMC, project = model2PL2PL)
+# modelMCMC           <- buildMCMC(conf2PL2PL)
+# cModelMCMC          <- compileNimble(modelMCMC, project = model2PL2PL)
 
-system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
+# system.time(samples <- runMCMC(cModelMCMC, niter=55000, nburnin = 5000, thin=10 ))
 
-################################################################################
+# ################################################################################
 
-betaCols <- grep("beta", colnames(samples))
-deltaCols <- grep("delta", colnames(samples))
-lambdaCols <- grep("lambda", colnames(samples))
-tauCols <- grep("r_features", colnames(samples))
-UstarCols <- grep("U", colnames(samples))
-etaCols   <- grep("eta", colnames(samples))
+# betaCols <- grep("beta", colnames(samples))
+# deltaCols <- grep("delta", colnames(samples))
+# lambdaCols <- grep("lambda", colnames(samples))
+# tauCols <- grep("r_features", colnames(samples))
+# UstarCols <- grep("U", colnames(samples))
+# etaCols   <- grep("eta", colnames(samples))
 
-samplesSummary(samples[, c(betaCols)])
-samplesSummary(samples[, c(deltaCols)])
-samplesSummary(samples[, c(lambdaCols)])
-
-
-samplesSummary(samples[, c(tauCols)])
+# samplesSummary(samples[, c(betaCols)])
+# samplesSummary(samples[, c(deltaCols)])
+# samplesSummary(samples[, c(lambdaCols)])
 
 
-#--- Trace
-K = max(Data$y)
-R = max(Data$RRi)
-I = max(Data$II)
-
-# Item 
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:I)
-  ts.plot(samples[ , betaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ betaCols[i]])
-
-par(mfrow = c(1, 2), cex = 1.1)
-for(i in 1:(K-1))
-  ts.plot(samples[ , deltaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ deltaCols[i]])
-
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:I)
-  ts.plot(samples[ , lambdaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ lambdaCols[i]])
-
-# Rater
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:(2*R))
-  ts.plot(samples[ , tauCols[i]], xlab = 'iteration', ylab = colnames(samples)[ tauCols[i]])
+# samplesSummary(samples[, c(tauCols)])
 
 
-par(mfrow = c(2, 2), cex = 1.1)
-for(i in 1:9)
-  ts.plot(samples[ , UstarCols[i]], xlab = 'iteration', ylab = colnames(samples)[ UstarCols[i]])
+# #--- Trace
+# K = max(Data$y)
+# R = max(Data$RRi)
+# I = max(Data$II)
 
-################################################################################
-calculateWAIC(samples, model2PL2PL)
+# # Item 
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:I)
+#   ts.plot(samples[ , betaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ betaCols[i]])
 
-################################################################################
-# ACCURACY CHECK
-par(mfrow = c(1, 1), cex = 1.1)
-# --- ETA
-eta_hat <- apply(samples[ , 20:119],2,mean) #check the indeces
-plot(Data$eta,eta_hat,pch=19,ylim=c(-10,10),xlim = c(-10,10),main="Eta - Accuracy",
-     xlab="TRUE ETA", ylab="ESTIMATES")
-abline(c(0,1),xpd=FALSE,col="red")
+# par(mfrow = c(1, 2), cex = 1.1)
+# for(i in 1:(K-1))
+#   ts.plot(samples[ , deltaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ deltaCols[i]])
 
-# --- BETA 
-beta_hat <- apply(samples[ , betaCols],2,mean) #check the indeces
-plot(Data$beta,beta_hat,pch=19,ylim=c(-0.8,0.8),xlim = c(-0.8,0.8),main="Beta - Accuracy",
-     xlab="TRUE BETA", ylab="ESTIMATES")
-abline(c(0,1),xpd=FALSE,col="red")
-# --- DELTA 
-delta_hat <- apply(samples[ , deltaCols[1:3]],2,mean) #check the indeces
-plot(Data$delta,delta_hat,pch=19,ylim=c(-10,10),xlim = c(-10,10),main="Delta - Accuracy",
-     xlab="TRUE DELTA", ylab="ESTIMATES")
-abline(c(0,1),xpd=FALSE,col="red")
-# --- l_LAMBDA 
-l_lambda_hat <- apply(samples[ , lambdaCols],2,mean) #check the indeces
-plot(Data$lambda,l_lambda_hat,pch=19,ylim=c(-2,2),xlim = c(-2,2),main="Delta - Accuracy",
-     xlab="TRUE l_LAMBDA", ylab="ESTIMATES")
-abline(c(0,1),xpd=FALSE,col="red")
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:I)
+#   ts.plot(samples[ , lambdaCols[i]], xlab = 'iteration', ylab = colnames(samples)[ lambdaCols[i]])
+
+# # Rater
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:(2*R))
+#   ts.plot(samples[ , tauCols[i]], xlab = 'iteration', ylab = colnames(samples)[ tauCols[i]])
+
+
+# par(mfrow = c(2, 2), cex = 1.1)
+# for(i in 1:9)
+#   ts.plot(samples[ , UstarCols[i]], xlab = 'iteration', ylab = colnames(samples)[ UstarCols[i]])
+
+# ################################################################################
+# calculateWAIC(samples, model2PL2PL)
+
+# ################################################################################
+# # ACCURACY CHECK
+# par(mfrow = c(1, 1), cex = 1.1)
+# # --- ETA
+# eta_hat <- apply(samples[ , 20:119],2,mean) #check the indeces
+# plot(Data$eta,eta_hat,pch=19,ylim=c(-10,10),xlim = c(-10,10),main="Eta - Accuracy",
+#      xlab="TRUE ETA", ylab="ESTIMATES")
+# abline(c(0,1),xpd=FALSE,col="red")
+
+# # --- BETA 
+# beta_hat <- apply(samples[ , betaCols],2,mean) #check the indeces
+# plot(Data$beta,beta_hat,pch=19,ylim=c(-0.8,0.8),xlim = c(-0.8,0.8),main="Beta - Accuracy",
+#      xlab="TRUE BETA", ylab="ESTIMATES")
+# abline(c(0,1),xpd=FALSE,col="red")
+# # --- DELTA 
+# delta_hat <- apply(samples[ , deltaCols[1:3]],2,mean) #check the indeces
+# plot(Data$delta,delta_hat,pch=19,ylim=c(-10,10),xlim = c(-10,10),main="Delta - Accuracy",
+#      xlab="TRUE DELTA", ylab="ESTIMATES")
+# abline(c(0,1),xpd=FALSE,col="red")
+# # --- l_LAMBDA 
+# l_lambda_hat <- apply(samples[ , lambdaCols],2,mean) #check the indeces
+# plot(Data$lambda,l_lambda_hat,pch=19,ylim=c(-2,2),xlim = c(-2,2),main="Delta - Accuracy",
+#      xlab="TRUE l_LAMBDA", ylab="ESTIMATES")
+# abline(c(0,1),xpd=FALSE,col="red")
 
 
 
