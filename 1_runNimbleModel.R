@@ -22,8 +22,6 @@ filename <- unlist(strsplit(basename(args$model), "[\\.]"))[1]
 MCMCcontrol 		<- list()
 MCMCcontrol$niter 	<- as.numeric(args$niter)
 MCMCcontrol$nburnin <- as.numeric(args$nburnin)
-## thinning for second set of monitors
-if(is.null(args$nthin)) MCMCcontrol$thin2 <- 1 else MCMCcontrol$thin2 <- as.numeric(args$nthin)
 
 ## set seed based on slurm task id
 task_id <- Sys.getenv("SLURM_ARRAY_TASK_ID")
