@@ -25,7 +25,7 @@ mkdir -p output
 ## Parametric models
 
 Rscript 1_runNimbleModel.R  \
---model=${FILES[$SLURM_ARRAY_TASK_ID]} \
+--model=models/parametric/para_2PL_2PL.R \
 --data=data/simulated/data_2PL2PL.rds \
 --niter=1000 \
 --nburnin=500 \
