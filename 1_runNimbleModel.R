@@ -7,13 +7,36 @@
 ##-----------------------------------------#
 args <- R.utils::commandArgs(asValue=TRUE)
 
+## Accepted arguments
+## model 				path to R script with model code
+## data 				path to data file
+## niter        number of iterations for MCMC
+## nburnin 			number of burnin iterations for MCMC
+## nthin 				thinning (deafault is 1)
+## dirResults	  (optional) path directory for results
 ##-----------------------------------------##
-## Set variables 
+## TMP - for testing the script
+##-----------------------------------------##
+args <- list()
+args$model 		= "models/parametric/para_2PL_2PL.R" 
+args$data 		= "data/simulated/data_2PL2PL.rds"
+args$niter 		= 1000 
+args$nburnin 	= 500 
+args$nthin 		= 1
+
+##-----------------------------------------##
+## Load libraries and functions
+##-----------------------------------------##
+library(nimble)
+library(here)
+
+##-----------------------------------------##
+## Set variables from args list
 ##-----------------------------------------##
 calcWAIC <- TRUE
 
 ## results directory
-if(is.null(args$dirResults)) dir <- "output/posterior_samples" else dir <- args$dirResults
+if(is.null(args$dirResults)) dir <- "output" else dir <- args$dirResults
 
 ## filename used for output
 filename <- unlist(strsplit(basename(args$model), "[\\.]"))[1]
@@ -23,7 +46,7 @@ MCMCcontrol 		<- list()
 MCMCcontrol$niter 	<- as.numeric(args$niter)
 MCMCcontrol$nburnin <- as.numeric(args$nburnin)
 
-## set seed based on slurm task id
+## set seed based on slurm task id if available
 task_id <- Sys.getenv("SLURM_ARRAY_TASK_ID")
 if(task_id == "") seed <- 1 else seed <- 1 + as.numeric(task_id)
 
@@ -31,31 +54,32 @@ MCMCcontrol$seed <- seed
 
 cat("##--------------------------------##\n")
 cat("Model ", filename, "\n")
+cat("Data ", args$data, "\n")
 cat("##--------------------------------##\n")
 
-## load library and functions
-library(nimble)
-source("R_functions/customSamplers.R")
+##---------------------------------------##
+## Read data 
+## Note: constants and inits are handles within each model script
 
-####################################
-data 	<- list(y = readRDS(args$data))
+Data 	<- readRDS(args$data)
+
+##---------------------------------------##
 ## Source model code  
 source(args$model)
 
 ##---------------------------------------##
-## Initialization
+## START HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ##---------------------------------------##
 ## init random effects using standardized raw score
 
-if(grepl("timss", args$data)) {
-	scores 		<- as.vector(by(alldata, alldata$id, function(x) sum(x$y)/length(x$y), simplify = T))
-	Sscores 	<- (scores - mean(scores))/sd(scores)
-	inits$eta 	<- Sscores
-} else {
-	scores 		<- apply(data$y, 1, sum)
-	Sscores 	<- (scores - mean(scores))/sd(scores)
-	inits$eta 	<- Sscores
-}
+# data.frame(Data$y, Data$PPi)
+# by(Data$y, as.factor(Data$PPi),function(x) sum(x$y), simplify = T)
+
+# scores 		<- as.vector(by(Data$y, as.factor(Data$PPi),function(x) sum(x$y), simplify = T))
+# Sscores 	<- (scores - mean(scores))/sd(scores)
+# inits$eta 	<- Sscores
+
+
 
 ## BNP inits for data application
 if(grepl("bnp", args$model)) {
