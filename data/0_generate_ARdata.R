@@ -238,6 +238,6 @@ plot(table(Data$y),ylab="frequency",main="observed scores",ylim=c(0,1000))
 
 ####
 
-filePath <- here("data", "simulated", "Data_AR_2PL2PL.rds")
+filePath <- here("data", "simulated", "data_AR_2PL2PL.rds")
 saveRDS(Data, file=filePath)
 
