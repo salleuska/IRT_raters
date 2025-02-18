@@ -17,12 +17,12 @@ args <- R.utils::commandArgs(asValue=TRUE)
 ##-----------------------------------------##
 ## TMP - for testing the script
 ##-----------------------------------------##
-args <- list()
-args$model 		= "models/parametric/para_2PL_2PL.R" 
-args$data 		= "data/simulated/data_2PL2PL.rds"
-args$niter 		= 1000 
-args$nburnin 	= 500 
-args$nthin 		= 1
+# args <- list()
+# args$model 		= "models/parametric/para_2PL_2PL.R" 
+# args$data 		= "data/simulated/data_2PL2PL.rds"
+# args$niter 		= 1000 
+# args$nburnin 	= 500 
+# args$nthin 		= 1
 
 ##-----------------------------------------##
 ## Load libraries and functions
