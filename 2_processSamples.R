@@ -8,7 +8,7 @@ source("functions/estimateDPdensity.R")
 args <- R.utils::commandArgs(asValue=TRUE)
 ## --resFileName
 ##-----------------------------------------#
-## TMP
+## TMP for testing
 args <- list(resFileName = "output/data_2PL2PL/para/para_2PL_2PL.rds")
 ##-----------------------------------------#
 # if(is.null(args$outDir)) outDir <- "output/posterior_samples_elaborated/" else dir <- args$outDir
