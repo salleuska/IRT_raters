@@ -33,7 +33,7 @@ library(here)
 ##-----------------------------------------##
 ## Set variables from args list
 ##-----------------------------------------##
-calcWAIC <- TRUE
+calcWAIC <- FALSE
 
 ## results directory
 if(is.null(args$dirResults)) dir <- "output" else dir <- args$dirResults
@@ -59,50 +59,24 @@ cat("##--------------------------------##\n")
 
 ##---------------------------------------##
 ## Read data 
-## Note: constants and inits are handles within each model script
+## Note: constants and inits are defined within each model script
 
 Data 	<- readRDS(args$data)
 
-##---------------------------------------##
-## Source model code  
-source(args$model)
-
-##---------------------------------------##
-## START HERE !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-##---------------------------------------##
-## init random effects using standardized raw score
-
-# data.frame(Data$y, Data$PPi)
-# by(Data$y, as.factor(Data$PPi),function(x) sum(x$y), simplify = T)
-
-# scores 		<- as.vector(by(Data$y, as.factor(Data$PPi),function(x) sum(x$y), simplify = T))
-# Sscores 	<- (scores - mean(scores))/sd(scores)
-# inits$eta 	<- Sscores
-
-
-
-## BNP inits for data application
-if(grepl("bnp", args$model)) {
-	if(grepl("health", args$data)) {
-		inits$zi 	<- kmeans(Sscores, 3)$cluster
-		inits$a 	<- 1        # gamma prior parameters
-		inits$b 	<- 3        # gamma prior parameters
-	}
-
-	## hyperamenters for simulated data
-	if(grepl("simulation", args$data)) {
-		inits$zi 	<- kmeans(Sscores, 4)$cluster
-		inits$a 	<- 2
-		inits$b 	<- 4
-	}
-	## hyperamenters for timss data
-	if(grepl("timss", args$data)) {
-		inits$zi 	<- kmeans(Sscores, 3)$cluster
-		constants$M <- 30   	# number of clusters
-		inits$a 	<- 1        # gamma prior parameters
-		inits$b 	<- 3        # gamma prior parameters
-	}
+## check that the scores are a vector 
+if(!is.vector(Data$y)) {
+	Data$y <- as.vector(Data$y)
 }
+##---------------------------------------##
+## Source model code, and definition of data, constants, inits
+source(args$model)
+##---------------------------------------##
+## Modify inits - 
+## initilize abilities  using standardized raw score
+
+scores 			<- as.vector(by(Data$y, as.factor(Data$PPi), function(x) sum(x), simplify = T))
+Sscores 		<- (scores - mean(scores))/sd(scores)
+inits$eta 	<- Sscores
 
 ##---------------------------------------------------##
 ## Create model and MCMC configuration
@@ -116,76 +90,40 @@ model <- nimbleModel(code 			= modelCode,
 										 calculate 	= FALSE)
 
 
-## update monitors
-monitors <- c(monitors, "myLogProbAll", "myLogProbSome", "myLogLik")
+##---------------------------------------------------##
+## SP: ?? SOME SETTING UNDECIDED - 2025
+##---------------------------------------------------##
+
+
+## update monitors - placeholder if we want to monitor the loklikelihood
+## monitors <- c(monitors, "myLogProbAll", "myLogProbSome", "myLogLik")
 
 ## Flag for WAIC
-if(calcWAIC) {
-## conditional WAIC - grouped students
-  if(grepl("timss", args$data)) {
-		indList <- split(seq_along(alldata$id), alldata$id)
-		groups <- sapply(indList, function(x)  paste0('y[', x, ']'))  
-  }
-  else {
-		groups <- paste0('y[', 1:constants$N, ', 1:', constants$I, ']')
-  }
+# if(calcWAIC) {
+# ## conditional WAIC - grouped students
+#   if(grepl("timss", args$data)) {
+# 		indList <- split(seq_along(alldata$id), alldata$id)
+# 		groups <- sapply(indList, function(x)  paste0('y[', x, ']'))  
+#   }
+#   else {
+# 		groups <- paste0('y[', 1:constants$N, ', 1:', constants$I, ']')
+#   }
 
 
-	mcmcConf <- configureMCMC(model, monitors = monitors, 
-		enableWAIC = TRUE, 
-		waicControl = list(dataGroups = groups))
+# 	mcmcConf <- configureMCMC(model, monitors = monitors, 
+# 		enableWAIC = TRUE, 
+# 		waicControl = list(dataGroups = groups))
 
-} else {
-	mcmcConf <- configureMCMC(model, monitors = monitors)
+# } else {
+# 	mcmcConf <- configureMCMC(model, monitors = monitors)
 
-}
+# }
 
-## Add samplers to monitor log posterior probability and likelihood
-nodeList = c("beta", "lambda", "eta")
-if("gamma" %in% monitors) nodeList[1] <- "gamma"
 
-mcmcConf$removeSampler("myLogLik")
-mcmcConf$addSampler("myLogLik", type =  "logProb_summer", 
-  control = list(nodeList = c("y")))
-
-mcmcConf$removeSampler("myLogProbAll")
-mcmcConf$addSampler("myLogProbAll", type =  "logProb_summer")
-
-mcmcConf$removeSampler("myLogProbSome")
-mcmcConf$addSampler("myLogProbSome", type =  "logProb_summer", 
-  control = list(nodeList = nodeList))
-
+mcmcConf <- configureMCMC(model, monitors = monitors)
 mcmcConf
 
-
-## sampler configuration changes according to mode
-if(args$mode == "centered" ) {
-
-	if(("gamma" %in% monitors) & grepl("constrainedAbilities|unconstrained", filename)){ 
-
-		  mcmcConf$removeSamplers("log_lambda")
-		  # mcmcConf$removeSamplers("gamma")
-  
- 		  mcmcConf$addSampler(type = 'centered',
-       			target = c('log_lambda', 'gamma'),
-       			control = list(nodesToCenter = 'eta', scale = 0.1, adaptive = TRUE))
-
-	} else {
-	  q(save = 'no')
-	}
-}
-
-
-mcmcConf$addMonitors2("eta")
-mcmcConf$setThin2(MCMCcontrol$thin2)
 mcmc <- buildMCMC(mcmcConf)	
-
-## Add thinning for all variables when running on data
-if(grepl("timss", args$data) | grepl("health", args$data)) {
-	mcmcConf$setThin(MCMCcontrol$thin2)
-}
-
-
 
 ##---------------------------------------------------##
 ## Compile model & MCMC 
@@ -228,20 +166,17 @@ if(calcWAIC) results$modelWAIC <- Cmcmc$getWAIC()$WAIC
 
 
 ##---------------------------------------------------##
-## directory for output
+## Set up directory names to save for output
 ##---------------------------------------------------##
 modelType       <- unlist(strsplit(basename(args$model), "[\\_\\.]"))[1]
 dataName        <- unlist(strsplit(basename(args$data), "[.]"))[1]
 
 outDir <- paste0(dir, "/", dataName, "/", modelType, "/")
+filenameOutput <- paste0(outDir, filename, ".rds")
 
-dir.create(file.path(outDir), recursive = TRUE, showWarnings = FALSE)
+dir.create(file.path(outDir), 
+						recursive = TRUE, 
+						showWarnings = FALSE)
 
-
-if(grepl("centered", args$mode)) {
-	filenameOutput <- paste0(outDir, filename, "_centered.rds")
-} else {
-	filenameOutput <- paste0(outDir, filename, ".rds")
-}
 
 saveRDS(results, file = filenameOutput )
