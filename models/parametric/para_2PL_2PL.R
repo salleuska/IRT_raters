@@ -59,9 +59,6 @@ constants <- list(I = max(Data$II), P = max(Data$PPi),R = max(Data$RRi), K=max(D
 
 data <- list(y = Data$y) #check
 
-set.seed(2)
-
-
 
 inits <- list(beta     = rnorm(constants$I, 0, 3),
               delta    = rnorm(constants$K, 0, 3),

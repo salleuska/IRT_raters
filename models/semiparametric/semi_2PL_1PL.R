@@ -64,7 +64,7 @@ constants <- list(I = max(Data$II), P = max(Data$PPi),R = max(Data$RRi), K=max(D
                   M=50)
 data <- list(y = Data$y) #check
 
-set.seed(2)
+
 
 
 

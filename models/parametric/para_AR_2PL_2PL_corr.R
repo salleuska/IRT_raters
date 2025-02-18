@@ -76,8 +76,6 @@ constants <- list(I = max(Data$II), P = max(Data$PPi),R = max(Data$RRi), K=max(D
 
 data <- list(y = Data$y) #check
 
-set.seed(2)
-
 r_features = matrix(NA,constants$R,3)
 r_features[,1]      = rnorm(constants$R, 0, 3)
 r_features[,2]      = rep(0, constants$R)
