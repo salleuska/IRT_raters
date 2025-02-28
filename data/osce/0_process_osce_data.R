@@ -1,7 +1,7 @@
 library(here)
 # setwd("C:/Users/39388/Dropbox/Il mio PC (LAPTOP-NO4UO9GH)/Desktop/Bocconi/Sally")
 
-Data  <- read.csv("data/OSCE_data.csv")
+Data  <- read.csv("data/osce/OSCE_data.csv")
 
 P         = 30                                                                  # number of subjects
 
@@ -28,7 +28,9 @@ I   = length(table(II))
 
 vec = list(scores, II,RRi,PPi,K,N,R,I)
 
-saveRDS(vec, "data/OCSE.rds")
+saveRDS(vec, "data/osce.rds")
+
+
 
 
 # ARi = rep(NA,N)
