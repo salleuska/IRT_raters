@@ -82,8 +82,8 @@ inits <- list(beta   = rnorm(constants$I, 0, 3),
               nu1    = 2.01, 
               nu2    = 1.01,
               s2_mu  = 2,
-              a      = 1,
-              b      = 3
+              a      = 2,  ## Escobar & West hyperparameters
+              b      = 4
 )
 
 monitors = c("beta","delta", "lambda","tau", "eta","zi", "muTilde", "s2Tilde", "alpha")
