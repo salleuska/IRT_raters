@@ -5,7 +5,7 @@ modelCode <- nimbleCode({
   # Likelihood
   for(n in 1:tot){
     
-    y[n,1] ~ dcat(ppi[n,1:K])
+    y[n] ~ dcat(ppi[n,1:K])
     
     pic[n,1]           <- 0
     pi[n,1]            <- 0
