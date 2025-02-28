@@ -56,11 +56,11 @@ estimateDPdensity <- function(samples,
     
     densitySamples[i, ] <- sapply(grid, 
                   function(x)(sum(mk * dnorm(x, muK, sqrt(s2K))) +
-                  alpha * dnorm(x, muKnew, sqrt(s2Knew)) )/(alpha+nIndividual))
+                  alpha * dnorm(x, muKnew, sqrt(s2Knew)) )/(alpha+nIndividuals))
   }
 
-## Return values of the function
-
-densitySamples
-
+  ## Return values of the function
+  out <- list(grid = grid, densitySamples= densitySamples)
+  return(out)
+  
 }
