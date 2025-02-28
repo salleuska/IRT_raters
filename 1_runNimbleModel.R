@@ -18,8 +18,8 @@ args <- R.utils::commandArgs(asValue=TRUE)
 ## TMP - for testing the script
 ##-----------------------------------------##
 # args <- list()
-# args$model 		= "models/parametric/para_2PL_2PL.R" 
-# args$data 		= "data/simulated/data_2PL2PL.rds"
+# args$model= "models/semiparametric/semi_2PL_2PL.R"
+# args$data = "data/osce/OSCE_Long.rds" 
 # args$niter 		= 1000 
 # args$nburnin 	= 500 
 # args$nthin 		= 1
@@ -72,16 +72,26 @@ if(!is.vector(Data$y)) {
 source(args$model)
 ##---------------------------------------##
 ## Modify inits - 
-## initilize abilities  using standardized raw score
+## 1. initilize abilities  using standardized raw score
+## 2. in running the code on data, set up cluster inits and M = n_individuals
 
 scores 			<- as.vector(by(Data$y, as.factor(Data$PPi), function(x) sum(x), simplify = T))
 Sscores 		<- (scores - mean(scores))/sd(scores)
 inits$eta 	<- Sscores
 
+if(grepl("semi", args$model)) {
+	if(grepl("osce", args$data)) {
+		inits$zi 	<- kmeans(Sscores, 3)$cluster
+		inits$a 	<- 1        # gamma prior parameters
+		inits$b 	<- 3        # gamma prior parameters
+		constants$M <- 30
+	}
+}
+## inits$zi 		<- kmeans(Sscores, 3)$cluster
+
 ##---------------------------------------------------##
 ## Create model and MCMC configuration
 ##---------------------------------------------------##
-
 
 model <- nimbleModel(code 			= modelCode,
 										 data 			= data,  
@@ -89,9 +99,10 @@ model <- nimbleModel(code 			= modelCode,
 										 inits 			= inits, 
 										 calculate 	= FALSE)
 
-
 ##---------------------------------------------------##
-## SP: ?? SOME SETTING UNDECIDED - 2025
+## SP: ?? SOME SETTING UNDECIDED - here in case we 
+## are interested in setting up monitoring the log-likelihood
+## or log posterior of the model
 ##---------------------------------------------------##
 
 
@@ -121,8 +132,6 @@ model <- nimbleModel(code 			= modelCode,
 
 
 mcmcConf <- configureMCMC(model, monitors = monitors)
-mcmcConf
-
 mcmc <- buildMCMC(mcmcConf)	
 
 ##---------------------------------------------------##
@@ -139,7 +148,6 @@ compilationTime <- system.time({
     }
 })
 
-
 ##---------------------------------------------------##
 ## Run MCMC 
 ##---------------------------------------------------##
@@ -147,7 +155,8 @@ runningTime <- system.time({try(
 	res <- runMCMC(Cmcmc, 
 				   niter 	= MCMCcontrol$niter, 
 				   nburnin  = MCMCcontrol$nburnin,
-				   setSeed  = seed))
+				   setSeed  = seed)
+	)
 	if(inherits(res, 'try-error')) {
   		warning(paste0("There was a problem running nimble MCMC."))
   }
