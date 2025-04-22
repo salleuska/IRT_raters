@@ -20,7 +20,8 @@ data_irt=list(K=setting$K, J=setting$n_person, R=setting$n_rater, I=setting$n_it
               Examinees=dat$Examinees, Raters=dat$Raters, Items=dat$Items, X=dat$Score)
 
 stan <- stan_model(file="model.stan")
-fit <- sampling(stan, data=data_irt, iter=5000, warmup=2000, chains=3)
+fit <- sampling(stan, data=data_irt, 
+  iter=5000, warmup=2000, chains=3)
 
 get_prod_restricted_prm <- function(d){
   return(append(1.0/prod(d), d))
@@ -52,9 +53,15 @@ get_category_prm <- function(category_prm, N, K){
 }
 
 
+saveRDS("fit", file="fit.rds")
 alpha_r <- get_prod_restricted_prm(summary(fit, par="alpha_r")$summary[,"mean"])
 d_rk <- get_category_prm(summary(fit, par="beta_rk")$summary[,"mean"], setting$n_rater, setting$K)
 alpha_i <- summary(fit, par="alpha_i")$summary[,"mean"]
 d_ik <- get_category_prm(summary(fit, par="beta_ik")$summary[,"mean"], setting$n_item, setting$K)
 beta_ir <- get_beta_ir(summary(fit, par="beta_ir")$summary[,"mean"], setting$n_item, setting$n_rater)
 theta <- summary(fit, par="theta")$summary[,"mean"]
+
+fit_ss <- extract(fit, permuted = TRUE) # fit_ss is a list 
+theta <- fit_ss$theta
+
+hist(theta, breaks = 100)
