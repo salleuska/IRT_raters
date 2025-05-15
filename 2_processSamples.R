@@ -51,7 +51,7 @@ nimble::samplesSummary(samples[, c(lambdaCols)])
 nimble::samplesSummary(samples[, c(tauCols)])
 
 out <- estimateDPdensity(samples, nIndividuals = 30, 
-	grid = seq(-4, 2, length = 200))
+	grid = seq(-5, 5, length = 200))
 res <- data.frame(grid = out$grid, mean = apply(out$densitySamples, 2, mean))
 
 library(ggplot2)
