@@ -74,7 +74,7 @@ generateData <- function( mu, sigma, c_p_s_s, N, R, tot, PPi, II, RRi, ARi, lamb
 # Let's assign a distribution to the subjects' latent ability ??? 
 
 Grid_s              = seq(-5, 5, len = 200)
-mu_s                = c(0,0)
+mu_s                = c(-2, 2)
 sigma_s             = c(1,1)
 c_p_s_s             = c(0.5,0.5)
 par(mfrow=c(1, 1))
@@ -238,6 +238,6 @@ plot(table(Data$y),ylab="frequency",main="observed scores",ylim=c(0,1000))
 
 ####
 
-filePath <- here("data", "simulated", "data_AR_2PL2PL.rds")
+filePath <- here("data", "simulated", "data_bimodal_2PL2PL.rds")
 saveRDS(Data, file=filePath)
 

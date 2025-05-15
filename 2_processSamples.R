@@ -1,6 +1,6 @@
 ##-----------------------------------------#
-## This script post-process the posterior samples 
-## meaning? 
+## This script process posterior samples
+## and estimate quantites for inference
 ##-----------------------------------------#
 library(here)
 source("functions/estimateDPdensity.R")
@@ -9,7 +9,8 @@ args <- R.utils::commandArgs(asValue=TRUE)
 ## --resFileName
 ##-----------------------------------------#
 ## TMP for testing
-args <- list(resFileName = "output/OSCE_Long/semi/semi_2PL_2PL.rds")
+## args <- list(resFileName = "output/OSCE_Long/semi/semi_2PL_2PL.rds")
+args <- list(resFileName = "output/data_bimodal_2PL2PL/semi/semi_2PL_2PL.rds")
 ##-----------------------------------------#
 # if(is.null(args$outDir)) outDir <- "output/posterior_samples_elaborated/" else dir <- args$outDir
 
@@ -39,7 +40,7 @@ betaCols <- grep("beta", colnames(samples))
 deltaCols <- grep("delta", colnames(samples))
 lambdaCols <- grep("lambda", colnames(samples))
 
-hist(samples[, grep("^eta", colnames(samples))])
+hist(samples[, grep("^eta", colnames(samples))], breaks = 100)
 
 
 tauCols <- grep("tau", colnames(samples))
@@ -49,7 +50,8 @@ nimble::samplesSummary(samples[, c(deltaCols)])
 nimble::samplesSummary(samples[, c(lambdaCols)])
 nimble::samplesSummary(samples[, c(tauCols)])
 
-out <- estimateDPdensity(samples, nIndividuals = 30)
+out <- estimateDPdensity(samples, nIndividuals = 30, 
+	grid = seq(-4, 2, length = 200))
 res <- data.frame(grid = out$grid, mean = apply(out$densitySamples, 2, mean))
 
 library(ggplot2)
