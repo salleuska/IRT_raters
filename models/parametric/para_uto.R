@@ -1,5 +1,5 @@
 ##-----------------------------------------#
-## [item] 2PL [rater] 1PL model 
+## This reproduce the model in Uto et al - PLOS one paper
 ##-----------------------------------------#
 library(nimble)
 
@@ -14,7 +14,8 @@ modelCode <- nimbleCode({
     
 
     for(k in 2:K){
-      pic[n,k]          <-  trans_alpha_r[RRi[n]]*alpha_i[II[n]] * (eta[PPi[n]] - beta_ir[II[n],RRi[n]] - category_prm[II[n], RRi[n], k])  
+      pic[n,k]          <-  trans_alpha_r[RRi[n]]*alpha_i[II[n]] * 
+      (eta[PPi[n]] - beta_ir[II[n],RRi[n]] - category_est_r[RRi[n], k] - category_est_i[II[n], k])  
       ## cumumlative sum
       pi[n,k]           <-  sum(pic[n,1:k])     
     }
@@ -51,31 +52,30 @@ modelCode <- nimbleCode({
 
   # Rater category thresholds
   for(r in 1:R){
-    for(k in 1:(K-1)){
-      beta_rk[r, k] ~ dnorm(0, var = 1)
+    d_rk[r, 1] <- 0
+    for(k in 2:(K-1)){
+      d_rk[r, k] ~ dnorm(0, var = 1)
     }
-    category_est_r[r, 1:(K-1)] <- beta_rk[r, 1:(K-1)]
-    category_est_r[r, K-1]     <- -sum(beta_rk[r, 1:(K-1)])
+    category_est_r[r, 1:(K-1)] <- d_rk[r, 1:(K-1)]
+    category_est_r[r, K]     <- -sum(d_rk[r, 1:(K-1)])
   }
   
   # Item category thresholds
   for(i in 1:I) {
-    for(k in 1:(K-1)) {
-      beta_ik[i, k] ~ dnorm(0, var = 1)
-    }
-  
-  category_est_i[i, 1:(K-1)] <- beta_ik[i, 1:(K-1)]
-  category_est_i[i, K-1]     <- -sum(beta_ik[i, 1:(K-1)])
+    d_ik[i, 1] <- 0
+    for(k in 2:(K-1)) {
+      d_ik[i, k] ~ dnorm(0, var = 1)
+    }  
+    category_est_i[i, 1:(K-1)] <- d_ik[i, 1:(K-1)]
+    category_est_i[i, K]     <- -sum(d_ik[i, 1:(K-1)])
+
     
-    for(r in 1:R){
-      category_prm[i, r, 1] <- 0
-      for(k in 2:K){
-        category_prm[i, r, k] <- category_prm[i, r, k-1] + 
-        category_est_r[r, k-1] + category_est_i[i, k-1]
-      }
-    }
+
   }
+
+
 })
+
 
 
 constants <- list(I = max(Data$II), P = max(Data$PPi),R = max(Data$RRi), K=max(Data$y), 
@@ -86,9 +86,9 @@ inits <- list(eta    = rnorm(constants$P, 0, 3),
               alpha_i = rep(1, constants$I),
               alpha_r = rep(1, constants$R), 
               beta_ir = matrix(rnorm(constants$I * constants$R), nrow = constants$I ), 
-              beta_rk = matrix(rnorm(constants$R * (constants$K - 1)), nrow = constants$R ),
-              beta_ik = matrix(rnorm(constants$I * (constants$K -1)), nrow = constants$I))
+              d_rk = matrix(rnorm(constants$R * (constants$K - 1)), nrow = constants$R ),
+              d_ik = matrix(rnorm(constants$I * (constants$K -1)), nrow = constants$I))
 
-monitors = c("eta","alpha_i", "alpha_r", "beta_ir")
+monitors = c("eta","alpha_i", "alpha_r", "beta_ir", "category_est_r", "category_est_i")
 
 

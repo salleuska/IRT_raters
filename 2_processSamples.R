@@ -9,8 +9,8 @@ args <- R.utils::commandArgs(asValue=TRUE)
 ## --resFileName
 ##-----------------------------------------#
 ## TMP for testing
-## args <- list(resFileName = "output/OSCE_Long/semi/semi_2PL_2PL.rds")
-args <- list(resFileName = "output/data_bimodal_2PL2PL/semi/semi_2PL_2PL.rds")
+args <- list(resFileName = "output/OSCE_Long/para/para_uto.rds")
+## args <- list(resFileName = "output/data_bimodal_2PL2PL/semi/semi_2PL_2PL.rds")
 ##-----------------------------------------#
 # if(is.null(args$outDir)) outDir <- "output/posterior_samples_elaborated/" else dir <- args$outDir
 
@@ -27,7 +27,6 @@ modelType <- strsplit(basename(fileName), "\\_|.rds")[[1]][1]
 resObj <- readRDS(args$resFileName)
 
 
-
 ##-------------------------------------------------------##
 ## TO DO: likely some rescaling for comparison - parametric and semi
 ##-------------------------------------------------------##
@@ -40,7 +39,8 @@ betaCols <- grep("beta", colnames(samples))
 deltaCols <- grep("delta", colnames(samples))
 lambdaCols <- grep("lambda", colnames(samples))
 
-hist(samples[, grep("^eta", colnames(samples))], breaks = 100)
+hist(samples[, grep("^eta", colnames(samples))], 
+	breaks = 100)
 
 
 tauCols <- grep("tau", colnames(samples))
