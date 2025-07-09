@@ -12,9 +12,8 @@ modelCode <- nimbleCode({
     pic[n,1]              <- 0
     pi[n,1]               <- 0
     
-
     for(k in 2:K){
-      pic[n,k]          <-  trans_alpha_r[RRi[n]]*alpha_i[II[n]] * 
+      pic[n,k]          <-  1.7*trans_alpha_r[RRi[n]]*alpha_i[II[n]] * 
       (eta[PPi[n]] - beta_ir[II[n],RRi[n]] - category_est_r[RRi[n], k] - category_est_i[II[n], k])  
       ## cumumlative sum
       pi[n,k]           <-  sum(pic[n,1:k])     
@@ -52,22 +51,27 @@ modelCode <- nimbleCode({
 
   # Rater category thresholds
   for(r in 1:R){
-    for(k in 1:(K-1)){
+    ## parameter for the first category is set to 0
+    d_rk[r, 1] <- 0
+    ## other categoires: constraints on the sum to zero
+    for(k in 2:(K-1)){
       d_rk[r, k] ~ dnorm(0, var = 1)
     }
     category_est_r[r, 1:(K-1)] <- d_rk[r, 1:(K-1)]
-    category_est_r[r, K]     <- -sum(d_rk[r, 1:(K-1)])
+    category_est_r[r, K]     <- -sum(d_rk[r, 2:(K-1)])
   }
   
   # Item category thresholds
   for(i in 1:I) {
-    for(k in 1:(K-1)) {
+    ## parameter for the first category is set to 0
+    d_ik[i, 1] <- 0
+    ## other categoires: constraints on the sum to zero
+    for(k in 2:(K-1)) {
       d_ik[i, k] ~ dnorm(0, var = 1)
     }  
     category_est_i[i, 1:(K-1)] <- d_ik[i, 1:(K-1)]
-    category_est_i[i, K]     <- -sum(d_ik[i, 1:(K-1)])
+    category_est_i[i, K]     <- - sum(d_ik[i, 2:(K-1)])
 
-    
 
   }
 
@@ -87,6 +91,6 @@ inits <- list(eta    = rnorm(constants$P, 0, 3),
               d_rk = matrix(rnorm(constants$R * (constants$K - 1)), nrow = constants$R ),
               d_ik = matrix(rnorm(constants$I * (constants$K -1)), nrow = constants$I))
 
-monitors = c("eta","alpha_i", "alpha_r", "beta_ir", "category_est_r", "category_est_i")
+monitors = c("eta","alpha_i", "trans_alpha_r", "beta_ir", "category_est_r", "category_est_i")
 
 

@@ -19,7 +19,7 @@ The model in Uto et al has the following form:
 
 \begin{equation}
 \mathbb{P}[Y_{jir}=k|Y_{jir} \in \{k,k-1\},\theta_j, \phi_{ir}, \delta_{irk}]= 
-\frac{exp\{\phi_{ir}(\theta_j - \delta_{irk})\}}{1+exp\{\phi_{ir}(\theta_j - \delta_{irk})\}}  
+\frac{exp\{D* \phi_{ir}(\theta_j - \delta_{irk})\}}{1+exp\{D* \phi_{ir}(\theta_j - \delta_{irk})\}}  
 \end{equation}
 
 for $k=1,\dots, K;$ $j=1,\dots, N;$ $i=1,\dots, I$ and $r \in \mathcal{R}_j$.
@@ -56,6 +56,8 @@ Location.
 Using 10,000 mcmc iteration with a burn-in of 4,000. 
 
 ```{r}
+#| echo: false 
+
 args <- list(resFileName = "output/OSCE_Long/para/para_uto.rds")
 
 listLength <- length(strsplit(args$resFileName, "\\/|.rds")[[1]])
@@ -64,8 +66,6 @@ fileName <- strsplit(args$resFileName, "\\/|.rds")[[1]][listLength]
 
 ## modelType - parametric or semi
 modelType <- strsplit(basename(fileName), "\\_|.rds")[[1]][1]
-# ## 
-# modelType <- strsplit(basename(fileName), "\\_|.rds")[[1]][1]
 
 ## read objects
 resObj <- readRDS(args$resFileName)
@@ -73,17 +73,42 @@ samples <- resObj$samples
 
 ```
 
+
+
+**Estimates fron nimble**
+
 ```{r}
-samples[, grep("^alpha_r", colnames(samples))] |> colMeans()
+alpha_r <- samples[, grep("^trans_alpha_r", colnames(samples))] |> colMeans()
+d_rk <- samples[, grep("^category_est_r", colnames(samples))] |> colMeans() |> matrix(nrow = 5)
+
+beta_ir <- samples[, grep("^beta_ir", colnames(samples))] |> colMeans() 
+
+severity <- beta_ir |> matrix(nrow = 30, byrow = FALSE) |> colMeans()
+
+
+tab <- data.frame("$\\alpha_r$" = alpha_r, 
+                  "$d_{r1}$" = d_rk[, 1], 
+                  "d_{r2}" = d_rk[, 2], 
+                  "d_{r3}" = d_rk[, 3], 
+                  "d_{r4}" = d_rk[, 4], 
+                  "severity" = severity,
+                  row.names = NULL)
+
+knitr::kable(tab)
 ```
+
+![paper_results](uto_et_al/uto_paper_rater_parameters.png)
+
+
+**Posterior distribution of the latent trait**
 
 ```{r}
 
 hist(samples[, grep("^eta", colnames(samples))], 
-	breaks = 10, prob= TRUE)
+	breaks = 20, prob= TRUE, ylim = c(0,1), 
+	main = "Posterior distribution of the latent trait", 
+	xlab = "Latent trait")
 lines(density(samples[, grep("^eta", colnames(samples))]), col = 4, lwd = 2)
-
-
 ```
 
 
