@@ -52,8 +52,7 @@ modelCode <- nimbleCode({
 
   # Rater category thresholds
   for(r in 1:R){
-    d_rk[r, 1] <- 0
-    for(k in 2:(K-1)){
+    for(k in 1:(K-1)){
       d_rk[r, k] ~ dnorm(0, var = 1)
     }
     category_est_r[r, 1:(K-1)] <- d_rk[r, 1:(K-1)]
@@ -62,8 +61,7 @@ modelCode <- nimbleCode({
   
   # Item category thresholds
   for(i in 1:I) {
-    d_ik[i, 1] <- 0
-    for(k in 2:(K-1)) {
+    for(k in 1:(K-1)) {
       d_ik[i, k] ~ dnorm(0, var = 1)
     }  
     category_est_i[i, 1:(K-1)] <- d_ik[i, 1:(K-1)]
