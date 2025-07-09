@@ -53,7 +53,8 @@ get_category_prm <- function(category_prm, N, K){
 }
 
 
-saveRDS("fit", file="fit.rds")
+saveRDS(fit, file="fit.rds")
+
 alpha_r <- get_prod_restricted_prm(summary(fit, par="alpha_r")$summary[,"mean"])
 d_rk <- get_category_prm(summary(fit, par="beta_rk")$summary[,"mean"], setting$n_rater, setting$K)
 alpha_i <- summary(fit, par="alpha_i")$summary[,"mean"]
