@@ -79,6 +79,15 @@ samples <- resObj$samples
 
 ```{r}
 alpha_r <- samples[, grep("^trans_alpha_r", colnames(samples))] |> colMeans()
+
+## apply constraints on the posterior means for the scaling
+get_prod_restricted_prm <- function(d){
+  return(append(1.0/prod(d), d))
+}
+alpha_r<- get_prod_restricted_prm(alpha_r[2:5])
+
+
+#######
 d_rk <- samples[, grep("^category_est_r", colnames(samples))] |> colMeans() |> matrix(nrow = 5)
 
 beta_ir <- samples[, grep("^beta_ir", colnames(samples))] |> colMeans() 
@@ -86,19 +95,25 @@ beta_ir <- samples[, grep("^beta_ir", colnames(samples))] |> colMeans()
 severity <- beta_ir |> matrix(nrow = 30, byrow = FALSE) |> colMeans()
 
 
-tab <- data.frame("$\\alpha_r$" = alpha_r, 
-                  "$d_{r1}$" = d_rk[, 1], 
+tab <- data.frame("alpha_r" = alpha_r, 
+                  "d_{r1}" = d_rk[, 1], 
                   "d_{r2}" = d_rk[, 2], 
                   "d_{r3}" = d_rk[, 3], 
                   "d_{r4}" = d_rk[, 4], 
                   "severity" = severity,
                   row.names = NULL)
 
-knitr::kable(tab)
+knitr::kable(tab, col.names = c("$\\alpha_r$", "$d_{r1}$", 
+                                "$d_{r2}$", "$d_{r3}$", 
+                                "$d_{r4}$", "severity"))
 ```
 
 ![paper_results](uto_et_al/uto_paper_rater_parameters.png)
 
+Note: the difference is in that in the paper they apply the constraint on the posterior means; not sure if this is necessary. 
+
+```{r}
+```
 
 **Posterior distribution of the latent trait**
 
@@ -109,6 +124,10 @@ hist(samples[, grep("^eta", colnames(samples))],
 	main = "Posterior distribution of the latent trait", 
 	xlab = "Latent trait")
 lines(density(samples[, grep("^eta", colnames(samples))]), col = 4, lwd = 2)
+
+
+alpha_i <- samples[, grep("^alpha_i", colnames(samples))] |> colMeans()
+
 ```
 
 
