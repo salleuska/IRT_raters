@@ -19,9 +19,9 @@ args <- R.utils::commandArgs(asValue=TRUE)
 ##-----------------------------------------##
 # args <- list()
 # args$model= "models/semiparametric/semi_2PL_2PL.R"
-# args$data = "data/osce/OSCE_Long.rds" 
-# args$niter 		= 1000 
-# args$nburnin 	= 500 
+# args$data = "data/osce/OSCE_Long.rds"
+# args$niter 		= 1000
+# args$nburnin 	= 500
 # args$nthin 		= 1
 
 ##-----------------------------------------##
@@ -72,8 +72,10 @@ if(!is.vector(Data$y)) {
 source(args$model)
 ##---------------------------------------##
 ## Modify inits - 
-## 1. initilize abilities  using standardized raw score
+## 1. initialize abilities  using standardized raw score
 ## 2. in running the code on data, set up cluster inits and M = n_individuals
+
+## using Data: for each individual calculate the score given by each rater 
 
 scores 			<- as.vector(by(Data$y, as.factor(Data$PPi), function(x) sum(x), simplify = T))
 Sscores 		<- (scores - mean(scores))/sd(scores)
@@ -87,7 +89,7 @@ if(grepl("semi", args$model)) {
 		constants$M <- 30
 	}
 }
-## inits$zi 		<- kmeans(Sscores, 3)$cluster
+
 
 ##---------------------------------------------------##
 ## Create model and MCMC configuration
@@ -162,6 +164,12 @@ runningTime <- system.time({try(
   }
 })
 
+if(grepl("semi", args$model)) {
+  if(grepl("osce", args$data)) {
+    outputG <- getSamplesDPmeasure(Cmcmc)
+  }
+}
+
 ##---------------------------------------------------##
 ## Save results, times, settings
 ##---------------------------------------------------##
@@ -170,6 +178,13 @@ results <- list(samples  = res,
 				samplingTime     = runningTime*(1 - MCMCcontrol$niter/MCMCcontrol$nburnin),
 				runningTime      = runningTime,
 				MCMCcontrol      = MCMCcontrol)
+
+
+if(grepl("semi", args$model)) {
+  if(grepl("osce", args$data)) {
+    results$outputG <- outputG
+  }
+}
 
 if(calcWAIC) results$modelWAIC <- Cmcmc$getWAIC()$WAIC
 

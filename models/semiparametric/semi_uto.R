@@ -13,7 +13,7 @@ modelCode <- nimbleCode({
     pi[n,1]               <- 0
     
     for(k in 2:K){
-      pic[n,k]          <-  1.7*trans_alpha_r[RRi[n]]*alpha_i[II[n]] * 
+      pic[n,k]          <-  trans_alpha_r[RRi[n]]*alpha_i[II[n]] * 
       (eta[PPi[n]] - beta_ir[II[n],RRi[n]] - category_est_r[RRi[n], k] - category_est_i[II[n], k])  
       ## cumumlative sum
       pi[n,k]           <-  sum(pic[n,1:k])     
@@ -32,12 +32,20 @@ modelCode <- nimbleCode({
     eta[j] ~ dnorm(mu[j], var = s2[j])  
     mu[j] <- muTilde[zi[j]]                 
     s2[j] <- s2Tilde[zi[j]]   
+
   }
   
   for(m in 1:M) {
     muTilde[m] ~ dnorm(0, var = s2_mu)
     s2Tilde[m] ~ dinvgamma(nu1, nu2)
   }
+  
+  # ## constraint - centering
+  # mean_eta <- mean(eta_raw[1:P])                 
+  # sd_eta <- sd(eta_raw[1:P])                 
+  # for(j in 1:P) {
+  #   eta[j] <- (eta_raw[j] - mean_eta)/sd_eta
+  # }
   
   ##----------------------------##
   # Item discrimination
@@ -88,7 +96,6 @@ modelCode <- nimbleCode({
 
   }
 
-
 })
 
 
@@ -112,8 +119,8 @@ inits <- list(eta    = rnorm(constants$P, 0, 3),
               nu1    = 2.01, 
               nu2    = 1.01,
               s2_mu  = 2,
-              a      = 2,  ## Escobar & West hyperparameters
-              b      = 4)
+              a      = 1, 
+              b      = 3)
 
 monitors = c("eta","zi", "alpha_dp", "muTilde", "s2Tilde",
              "alpha_i", "trans_alpha_r", 

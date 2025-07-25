@@ -21,9 +21,6 @@ estimateDPdensity <- function(samples,
                               grid = seq(-10, 10, len = 200)
                               ) {
 
-
-
-
   # posterior samples of the concentration parameter
   alphaSamples <- samples[ , paramNames$alpha] 
   # posterior samples of the cluster means

@@ -8,6 +8,8 @@ format:
 editor: source
 ---
 
+
+
 Here we reproduce the model in Uto et al. using nimble. 
 
 I will use the notation in the paper. 
@@ -55,6 +57,8 @@ Location.
 
 Using 10,000 mcmc iteration with a burn-in of 4,000. 
 
+
+
 ```{r}
 #| echo: false 
 
@@ -75,7 +79,11 @@ samples <- resObj$samples
 
 
 
+
+
 **Estimates fron nimble**
+
+
 
 ```{r}
 alpha_r <- samples[, grep("^trans_alpha_r", colnames(samples))] |> colMeans()
@@ -108,14 +116,22 @@ knitr::kable(tab, col.names = c("$\\alpha_r$", "$d_{r1}$",
                                 "$d_{r4}$", "severity"))
 ```
 
+
+
 ![paper_results](uto_et_al/uto_paper_rater_parameters.png)
 
 Note: the difference is in that in the paper they apply the constraint on the posterior means; not sure if this is necessary. 
 
+
+
 ```{r}
 ```
 
+
+
 **Posterior distribution of the latent trait**
+
+
 
 ```{r}
 
@@ -130,9 +146,12 @@ alpha_i <- samples[, grep("^alpha_i", colnames(samples))] |> colMeans()
 
 ```
 
+
+
 ### Semiparametric version
 
-Remove multiplication by 1.7 -- nonsense. Using a DP mixture for the latent ability.  Prior on DP concentration parameter is $Gamma(1,3)$ (expected number of clusters a priori is around 2 with variance 2). Also here it make sense to consider the variance for the cluster components; since there is not huge variability on the scores scale, I would consider a small variance.
+Identical model, but using a DP mixture for the latent ability
+
 
 
 ```{r}
@@ -155,7 +174,11 @@ samples <- resObj$samples
 
 
 
+
+
 **Estimates fron nimble**
+
+
 
 ```{r}
 alpha_r <- samples[, grep("^trans_alpha_r", colnames(samples))] |> colMeans()
@@ -192,7 +215,7 @@ knitr::kable(tab, col.names = c("$\\alpha_r$", "$d_{r1}$",
 source("functions/estimateDPdensity.R")
 
 hist(samples[, grep("^eta", colnames(samples))], 
-	breaks = 25, prob= TRUE, ylim = c(0, 1), 
+	breaks = 20, prob= TRUE, ylim = c(0,1), 
 	main = "Posterior distribution of the latent trait", 
 	xlab = "Latent trait")
 lines(density(samples[, grep("^eta", colnames(samples))]), col = 4, lwd = 2)
@@ -204,59 +227,12 @@ out <- estimateDPdensity(samples,
                                           s2Tilde = "s2Tilde", 
                                           zi = "zi"), 
                          nIndividuals = 30, 
-	grid = seq(-5, 5, length = 200))
+	grid = seq(-2, 2, length = 200))
 
 res <- data.frame(grid = out$grid, mean = apply(out$densitySamples, 2, mean))
 
-ggplot2::ggplot(data = res, 
-                aes(x = grid, y = mean)) + 
-  geom_line()
+library(ggplot2)
 
-hist(apply(samples[, grep("^eta", colnames(samples))], 2, mean),
-     freq = FALSE, xlim = c(-3,3),
-	breaks = 10, prob= TRUE, ylim = c(0,1), 
-	main = "Posterior distribution of the latent trait", 
-	xlab = "Latent trait")## pointwise estimate of the density for standardized log grid
-
-
-hist(samples[, grep("^eta", colnames(samples))],
-     freq = FALSE, xlim = c(-3,3),
-	breaks = 30, prob= TRUE, ylim = c(0,1), 
-	main = "Posterior distribution of the latent trait", 
-	xlab = "Latent trait")## pointwise estimate of the density for standardized log grid
-lines(out$grid, apply(out$densitySamples, 2, mean), lwd = 2, col = 'black') 
-lines(out$grid, apply(out$densitySamples, 2, quantile, 0.025), lty = 2, col = 'black') 
-lines(out$grid, apply(out$densitySamples, 2, quantile, 0.975), lty = 2, col = 'black') 
-
-plot(samples[, "alpha_dp"], type = "l")
-mean(samples[, "alpha_dp"])
-
-nClusters <- apply(samples[, grep("zi", colnames(samples))], 1, \(x) length(unique(x)))
-
-plot(nClusters, type = "l")
-library(salso)
-help(salso)
-
-cc <- salso(samples[, grep("zi", colnames(samples))])
-cc
-
-
-
-str(resObj$outputG)
-
-densityDPMeasure <- matrix(0, ncol = length(out$grid), nrow = length(resObj$outputG))
-
-for(i in seq_len(length(resObj$outputG))) {  
-    densityDPMeasure[i, ] <- sapply(out$grid,
-                function(x)(
-                  sum(resObj$outputG[[i]][,1]*
-                    dnorm(x, resObj$outputG[[i]][,2], sqrt(resObj$outputG[[i]][,3])))))
-}
-
-res2 <- data.frame(grid = out$grid, mean = apply(densityDPMeasure, 2, mean))
-
-ggplot2::ggplot(data = res2, 
-                aes(x = grid, y = mean)) + 
-  geom_line()
+ggplot(res, aes(x=grid, y = mean)) + geom_line()
 
 ```
