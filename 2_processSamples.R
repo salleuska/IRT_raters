@@ -28,7 +28,8 @@ resObj <- readRDS(args$resFileName)
 
 
 ##-------------------------------------------------------##
-## TO DO: likely some rescaling for comparison - parametric and semi
+## TO DO: likely some rescaling for comparison - parametric and semiparametric
+## SP: Need to be sure on the constraints?
 ##-------------------------------------------------------##
 samples <- resObj$samples
 

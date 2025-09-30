@@ -5,8 +5,20 @@
 ##-----------------------------------------#
 ## This scripts runs a nimble model
 ##-----------------------------------------#
-args <- R.utils::commandArgs(asValue=TRUE)
+get_args <- function() {
+  # If the caller (an interactive R session) defined 'args' as a list, use it
+  if (exists("args") && is.list(args)) {
+    return(args)
+  }
+  # Otherwise, parse command-line args (shell / Rscript case)
+	a <- R.utils::commandArgs(asValue = TRUE)  	
+	return(a)
+  
+}
 
+args <- get_args()
+
+##-----------------------------------------##
 ## Accepted arguments
 ## model 				path to R script with model code
 ## data 				path to data file

@@ -6,11 +6,13 @@
 ## Same usage as main.sh but to run models from R
 ##-----------------------------------------#
 
-args <- list()
-args$model 		= "models/parametric/para_2PL_2PL.R" 
-args$data 		= "data/simulated/data_2PL2PL.rds"
-args$niter 		= 1000 
-args$nburnin 	= 500 
-args$nthin 		= 1
+## Here exaple
+args <- list(
+  model   = "models/parametric/para_2PL_2PL.R",
+  data    = "data/simulated/data_2PL2PL.rds",
+  niter   = 1000,
+  nburnin = 500,
+  nthin   = 1
+)
 
 source("1_runNimbleModel.R")

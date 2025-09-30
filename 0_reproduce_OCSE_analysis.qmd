@@ -1,6 +1,6 @@
 ---
 title: "Results in Uto et al paper"
-format: 
+format:
   html:
     embed-resources: true
     self-contained-math: true
@@ -57,7 +57,7 @@ Using 10,000 mcmc iteration with a burn-in of 4,000.
 
 ```{r}
 #| echo: false 
-
+library(ggplot2)
 args <- list(resFileName = "output/OSCE_Long/para/para_uto.rds")
 
 listLength <- length(strsplit(args$resFileName, "\\/|.rds")[[1]])
@@ -115,7 +115,9 @@ Note: the difference is in that in the paper they apply the constraint on the po
 ```{r}
 ```
 
-**Posterior distribution of the latent trait**
+**Posterior distribution of the latent trait (parametric model)**
+
+Here I am looking at the distribution of all MCMC samples of the latent trait. 
 
 ```{r}
 
@@ -132,7 +134,7 @@ alpha_i <- samples[, grep("^alpha_i", colnames(samples))] |> colMeans()
 
 ### Semiparametric version
 
-Remove multiplication by 1.7 -- nonsense. Using a DP mixture for the latent ability.  Prior on DP concentration parameter is $Gamma(1,3)$ (expected number of clusters a priori is around 2 with variance 2). Also here it make sense to consider the variance for the cluster components; since there is not huge variability on the scores scale, I would consider a small variance.
+I removed the multiplication by 1.7. Using a DP mixture for the latent ability.  Prior on DP concentration parameter is $Gamma(1,3)$ (expected number of clusters a priori is around 2 with variance 2). Also here it make sense to consider the variance for the cluster components; since there is not huge variability on the scores scale, I would consider a small variance.
 
 
 ```{r}
@@ -188,12 +190,13 @@ knitr::kable(tab, col.names = c("$\\alpha_r$", "$d_{r1}$",
                                 "$d_{r4}$", "severity"))
 ```
 
+
 ```{r}
 source("functions/estimateDPdensity.R")
 
 hist(samples[, grep("^eta", colnames(samples))], 
 	breaks = 25, prob= TRUE, ylim = c(0, 1), 
-	main = "Posterior distribution of the latent trait", 
+	main = "Posterior distribution of the latent trait - MCMC samples", 
 	xlab = "Latent trait")
 lines(density(samples[, grep("^eta", colnames(samples))]), col = 4, lwd = 2)
 
@@ -208,7 +211,7 @@ out <- estimateDPdensity(samples,
 
 res <- data.frame(grid = out$grid, mean = apply(out$densitySamples, 2, mean))
 
-ggplot2::ggplot(data = res, 
+ggplot(data = res, 
                 aes(x = grid, y = mean)) + 
   geom_line()
 
@@ -217,6 +220,9 @@ hist(apply(samples[, grep("^eta", colnames(samples))], 2, mean),
 	breaks = 10, prob= TRUE, ylim = c(0,1), 
 	main = "Posterior distribution of the latent trait", 
 	xlab = "Latent trait")## pointwise estimate of the density for standardized log grid
+lines(out$grid, apply(out$densitySamples, 2, mean), lwd = 2, col = 'black') 
+lines(out$grid, apply(out$densitySamples, 2, quantile, 0.025), lty = 2, col = 'black') 
+lines(out$grid, apply(out$densitySamples, 2, quantile, 0.975), lty = 2, col = 'black') 
 
 
 hist(samples[, grep("^eta", colnames(samples))],
@@ -235,14 +241,9 @@ nClusters <- apply(samples[, grep("zi", colnames(samples))], 1, \(x) length(uniq
 
 plot(nClusters, type = "l")
 library(salso)
-help(salso)
 
 cc <- salso(samples[, grep("zi", colnames(samples))])
 cc
-
-
-
-str(resObj$outputG)
 
 densityDPMeasure <- matrix(0, ncol = length(out$grid), nrow = length(resObj$outputG))
 
@@ -255,8 +256,7 @@ for(i in seq_len(length(resObj$outputG))) {
 
 res2 <- data.frame(grid = out$grid, mean = apply(densityDPMeasure, 2, mean))
 
-ggplot2::ggplot(data = res2, 
-                aes(x = grid, y = mean)) + 
+ggplot(data = res2,aes(x = grid, y = mean)) + 
   geom_line()
 
 ```
