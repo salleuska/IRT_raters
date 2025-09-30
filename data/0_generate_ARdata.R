@@ -117,12 +117,19 @@ sp              = 3    # number of subjects per rater
 tot             = sp * N * I
 
 # ---- RATER FEATURES  ----
+# raters features are correlated
+
 Omega  <- diag(1, 3, 3)              #
 sigma3 <- c(1, 0.3, 0.2)
 Sigma  <- diag(sigma3) %*% Omega %*% diag(sigma3)
 mu3    <- c(0, 0, 0)
 
 R_features <- MASS::mvrnorm(R, mu3, Sigma)
+
+# 1. severity 
+# 2. anchoring
+# 3. consistency/discrimination
+
 R_tau <- rbind(
   R_features[1:(R-1), 1:2],
   c(-sum(R_features[, 1]), R_features[R, 2])

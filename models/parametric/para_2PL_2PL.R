@@ -1,51 +1,72 @@
 ##-----------------------------------------#
 ## [item] 2PL [rater] 2PL model 
 ##-----------------------------------------#
+## - Adjacent-categories (GPCM-style)
+## - Item slope:  l_lambda[i]
+## - Rater slope: l_phi[r]
+## - Item diff:   beta[i]
+## - Rater bias:  tau[r]
+## - Thresholds:  delta[k]  
+## - Subjects' eta N(0,1)
+##-----------------------------------------#
+
 modelCode <- nimbleCode({
-  # Likelihood
+
+  ##---------------- Likelihood ----------------##
   for(n in 1:tot){
-    
-    y[n] ~ dcat(ppi[n,1:K])
-   
-     pic[n,1]           <- 0
-     pi[n,1]            <- 0
-    
+
+    # Observation n belongs to subject j, item i, rater r
+    # indices provided as data: PPi[n] (j), II[n] (i), RRi[n] (r)
+
+    y[n] ~ dcat(ppi[n, 1:K])
+
+    # Baseline category (k = 1) has zero adjacent/cumulative logit
+    pic[n, 1] <- 0
+    pi[n, 1]  <- 0
+
+    # Common log-slope term: exp(l_lambda[item] + l_phi[rater])
+    slope[n]<- exp( l_lambda[ II[n] ] + l_phi[ RRi[n] ] )
+
     for(k in 2:K){
-      pic[n,k]          <-  exp(l_lambda[II[n]] + l_phi[RRi[n]]) * (eta[PPi[n]] - beta[II[n]] + delta[k-1] - tau[RRi[n]] )   # Adjacent categories logits (Agresti, 2013, pp.309-310; Masters, 1982, p.158)
-      pi[n,k]           <-  sum(pic[n,1:k])     
+      # Adjacent-category logit piece for category k:
+      # slope * ( eta - beta - delta - tau )
+      # NOTE: delta (thresholds) ENTERS WITH A MINUS SIGN.
+      pic[n, k] <- slope[n] * ( eta[ PPi[n] ] 
+                               -  beta[ II[n] ] 
+                               -  delta[k - 1] 
+                               -  tau[ RRi[n] ] )
+      # Cumulative logit up to k
+      pi[n, k]  <- sum( pic[n, 1:k] )
     }
-    ppi[n,1:K]          <- exp(pi[n,1:K])/sum(exp(pi[n,1:K]))
+
+    # Softmax over cumulative logits to get probabilities
+    ppi[n, 1:K] <- exp( pi[n, 1:K] ) / sum( exp( pi[n, 1:K] ) )
   }
-  
-  # Items parameters
+
+  ##---------------- Item parameters ----------------##
+  # Threshold steps (shared across raters)
   for(k in 1:(K-1)){
-    delta[k]  ~ dnorm(0,  var = 25)   
+    delta[k] ~ dnorm(0, var = 3)
   }
-  
+
+  # Item locations and log-slopes with sum-to-zero constraints
   for(i in 1:(I-1)) {
-    beta[i]     ~ dnorm(0,  var = 25)  
-    l_lambda[i] ~ dnorm(0,  var = 3)
+    beta[i]     ~ dnorm(0, var = 3)
+    l_lambda[i] ~ dnorm(0, var = 3)
   }
-  
-  beta[I]   <-  -sum(beta[1:(I-1)])
-  
-  l_lambda[I] <-  -sum(l_lambda[1:(I-1)])
-  
-  # lambda[1:I] <- exp(l_lambda[1:I])
-  
-  # Raters parameters
-  
-  for(i in 1:(R-1)) {
-    tau[i]   ~ dnorm(0,  var = 25) 
-    l_phi[i] ~ dnorm(0,  var = 3)
+  beta[I]      <- -sum(beta[1:(I-1)])
+  l_lambda[I]  <- -sum(l_lambda[1:(I-1)])
+
+  ##---------------- Rater parameters ----------------##
+  # Rater biases (tau) and log-slopes (l_phi) with sum-to-zero constraints
+  for(r in 1:(R-1)) {
+    tau[r]   ~ dnorm(0, var = 3)
+    l_phi[r] ~ dnorm(0, var = 3)
   }
-  
-  tau[R]    <-  -sum(tau[1:(R-1)])
-  l_phi[R]  <-  -sum(l_phi[1:(R-1)])
-  
-  # phi[1:R]  <- exp(l_phi[1:R])
-  
-  ## Individual effects
+  tau[R]   <- -sum(tau[1:(R-1)])
+  l_phi[R] <- -sum(l_phi[1:(R-1)])
+
+  ##---------------- Subject latent traits  ----------------##
   
   for(p in 1:P) {
     eta[p] ~ dnorm(0, var = 1)  

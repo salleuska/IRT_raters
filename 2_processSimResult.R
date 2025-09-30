@@ -9,8 +9,8 @@ args <- R.utils::commandArgs(asValue=TRUE)
 ## --resFileName
 ##-----------------------------------------#
 ## TMP for testing
-args <- list(resFileName = "output/OSCE_Long/para/para_uto.rds")
-## args <- list(resFileName = "output/data_bimodal_2PL2PL/semi/semi_2PL_2PL.rds")
+## args <- list(resFileName = "output/OSCE_Long/para/para_uto.rds")
+args <- list(resFileName = "output/data_bimodal_noAR/semi/semi_2PL_2PL.rds")
 ##-----------------------------------------#
 # if(is.null(args$outDir)) outDir <- "output/posterior_samples_elaborated/" else dir <- args$outDir
 
@@ -32,13 +32,20 @@ resObj <- readRDS(args$resFileName)
 ## SP: Need to be sure on the constraints?
 ##-------------------------------------------------------##
 samples <- resObj$samples
+colnames(samples)
+
+etaCols      <- grep("^eta(\\[|$)",    colnames(samples))
+betaCols     <- grep("^beta(\\[|$)",   colnames(samples))
+deltaCols    <- grep("^delta(\\[|$)",  colnames(samples))   # thresholds (K-1)
+tauCols      <- grep("^tau(\\[|$)",    colnames(samples))   # rater biases
+llambaCols   <- grep("^l_lambda(\\[|$)", colnames(samples)) # item log-slopes
+lphiCols     <- grep("^l_phi(\\[|$)",    colnames(samples)) # rater log-slopes
 
 ##-------------------------------------------------------##
 ## !!!!!!!!!! START FROM HERE
 ##-------------------------------------------------------##
-betaCols <- grep("beta", colnames(samples))
-deltaCols <- grep("delta", colnames(samples))
-lambdaCols <- grep("lambda", colnames(samples))
+
+
 
 hist(samples[, grep("^eta", colnames(samples))], 
 	breaks = 100)
@@ -52,7 +59,7 @@ nimble::samplesSummary(samples[, c(lambdaCols)])
 nimble::samplesSummary(samples[, c(tauCols)])
 
 out <- estimateDPdensity(samples, nIndividuals = 30, 
-	grid = seq(-5, 5, length = 200))
+	grid = seq(-8, 8, length = 200))
 res <- data.frame(grid = out$grid, mean = apply(out$densitySamples, 2, mean))
 
 library(ggplot2)
