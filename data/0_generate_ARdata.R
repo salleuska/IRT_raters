@@ -13,12 +13,12 @@ draw_eta <- function(N, latent_scenario = c("unimodal","bimodal"),
 
   if (latent_scenario == "unimodal") {
     eta <- rnorm(N, mu_uni, sd_uni)
-    list(eta = eta, mu_s = mu_uni, sigma_s = sd_uni^2, c_p_s_s = 1)
+    list(eta = eta, mu_s = mu_uni, sigma_s = sd_uni^2)
   } else {
     # bimodal (finite mixture for simulation)
     comp <- sample.int(2, N, replace = TRUE, prob = mix_w)
     eta <- rnorm(N, mix_mu[comp], mix_sd[comp])
-    list(eta = eta, mu_s = mix_mu, sigma_s = mix_sd^2, c_p_s_s = mix_w)
+    list(eta = eta, mu_s = mix_mu, sigma_s = mix_sd^2)
   }
 }
 
