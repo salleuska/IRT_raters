@@ -75,149 +75,133 @@ build_design <- function(N, R, I, sp) {
 ## score, rater id, subject id, item id
 #####################################################################
 
-generateData <- function(eta, N, R, tot, PPi, II, RRi, ARi,
-                         lambda, beta_ir, rho_rk, delta_ik, R_tau, R_phi,
-                         use_AR = FALSE, K) {
+# generateData <- function(eta, N, R, tot, PPi, II, RRi, ARi,
+#                          lambda, beta_ir, rho_rk, delta_ik, R_tau, R_phi,
+#                          use_AR = FALSE, K) {
 
-  y    <- numeric(tot)
-  pic  <- matrix(0, nrow = tot, ncol = K)  # adjacent–category logits
-  pi   <- matrix(0, nrow = tot, ncol = K)  # cumulative logits
-  ppi  <- matrix(0, nrow = tot, ncol = K)  # probabilities
+#   y    <- numeric(tot)
+#   pic  <- matrix(0, nrow = tot, ncol = K)  # adjacent–category logits
+#   pi   <- matrix(0, nrow = tot, ncol = K)  # cumulative logits
+#   ppi  <- matrix(0, nrow = tot, ncol = K)  # probabilities
 
 
-  # MAIN LOOP
-  for (n in 1:tot) {
-    pic[n, 1] <- 0
-    pi[n, 1]  <- 0
+#   # MAIN LOOP
+#   for (n in 1:tot) {
+#     pic[n, 1] <- 0
+#     pi[n, 1]  <- 0
 
-    ar_prev_idx <- ARi[n]
+#     ar_prev_idx <- ARi[n]
 
-    for (k in 2:K) {
-      step <- k -1
+#     for (k in 2:K) {
+#       step <- k -1
 
-      # δ_{jirk} = β_{ir} + b_{ik} + ρ_{rk}
-      delta_step <- beta_ir[II[n], RRi[n]] +  delta_ik[II[n], step] + rho_rk[RRi[n], step]
-      base <- exp(R_phi[RRi[n]] + lambda[II[n]]) * (eta[PPi[n]] - delta_step)
+#       # δ_{jirk} = β_{ir} + b_{ik} + ρ_{rk}
+#       delta_step <- beta_ir[II[n], RRi[n]] +  delta_ik[II[n], step] + rho_rk[RRi[n], step]
+#       base <- exp(R_phi[RRi[n]] + lambda[II[n]]) * (eta[PPi[n]] - delta_step)
 
-      if (use_AR) {
-        stop("AR contribution not implemented in this generator. Set use_AR=FALSE.")
-        # If re-enabling later:
-        # if (ar_prev_idx != 0) {
-        #   base <- base - exp(R_phi[RRi[n]] + lambda[II[n]]) *
-        #                   (R_tau[RRi[n], 2] * eta[ar_prev_idx])
-        # }
-      }
+#       if (use_AR) {
+#         stop("AR contribution not implemented in this generator. Set use_AR=FALSE.")
+#         # If re-enabling later:
+#         # if (ar_prev_idx != 0) {
+#         #   base <- base - exp(R_phi[RRi[n]] + lambda[II[n]]) *
+#         #                   (R_tau[RRi[n], 2] * eta[ar_prev_idx])
+#         # }
+#       }
 
-      pic[n, k] <- base
-      pi[n, k]  <- pi[n, k - 1] + base
-    }
+#       pic[n, k] <- base
+#       pi[n, k]  <- pi[n, k - 1] + base
+#     }
 
-    # stable softmax over cumulative logits
-    z <- pi[n, 1:K] - max(pi[n, 1:K])
-    ez <- exp(z)
-    ppi[n, 1:K] <- ez / sum(ez)
+#     # stable softmax over cumulative logits
+#     z <- pi[n, 1:K] - max(pi[n, 1:K])
+#     ez <- exp(z)
+#     ppi[n, 1:K] <- ez / sum(ez)
 
-    y[n] <- sample(1:K, 1, prob = ppi[n, 1:K])
-  }
+#     y[n] <- sample(1:K, 1, prob = ppi[n, 1:K])
+#   }
 
-  list(
-    y = y, eta = eta, ppi = ppi,
-    PPi = PPi, II = II, RRi = RRi, ARi = ARi,
-    lambda = lambda, beta_ir = beta_ir, delta_ik = delta_ik,
-    tau = R_tau, phi = R_phi, rho_rk = rho_rk, K = K
-  )
-}
+#   list(
+#     y = y, eta = eta, ppi = ppi,
+#     PPi = PPi, II = II, RRi = RRi, ARi = ARi,
+#     lambda = lambda, beta_ir = beta_ir, delta_ik = delta_ik,
+#     tau = R_tau, phi = R_phi, rho_rk = rho_rk, K = K
+#   )
+# }
 
-## ---------------- CONFIG (all-in-one) ----------------
+# ## ---------------- CONFIG (all-in-one) ----------------
 
-set.seed(1)
+# set.seed(1)
 
-N <- 100     # subjects
-I <- 5       # items
-R <- 5       # raters
-K <- 4       # categories (scored 0..K-1; generator uses 1..K)
-sp <- 3      # raters per subject
-tot <- sp * N * I
+# N <- 100     # subjects
+# I <- 5       # items
+# R <- 5       # raters
+# K <- 4       # categories (scored 0..K-1; generator uses 1..K)
+# sp <- 3      # raters per subject
+# tot <- sp * N * I
 
-## ---- RATER FEATURES (severity, AR anchor, consistency) ----
-Omega  <- diag(1, 3, 3)
-sigma3 <- c(1, 0.3, 0.2)
-Sigma  <- diag(sigma3) %*% Omega %*% diag(sigma3)
-mu3    <- c(0, 0, 0)
+# ## ---- ITEM PARAMETERS ----
+# l_lambda <- rnorm(I - 1, 0, 0.3); l_lambda[I] <- -sum(l_lambda[1:(I - 1)])  # sum-to-zero on log-λ
+# lambda   <- l_lambda
+# beta_i   <- rnorm(I - 1, 0, 0.5); beta_i[I] <- -sum(beta_i[1:(I - 1)])      # item main effect
+# delta    <- rnorm(K - 1, 1, 1)                                              # base step vector
 
-R_features <- MASS::mvrnorm(R, mu3, Sigma)
-# 1: severity, 2: anchoring, 3: consistency (log-ξ)
-R_tau <- rbind(
-  R_features[1:(R-1), 1:2],
-  c(-sum(R_features[, 1]), R_features[R, 2])
-)
-l_phi <- c(R_features[1:(R-1), 3], -sum(R_features[1:(R-1), 3]))
-R_phi <- l_phi
-if (any(R_tau[,2] > 1) || any(R_tau[,2] < -1)) message("WARNING: divergent AR(1) path (|rho|>1)")
+# ## ---- BUILD MODEL MATRICES EXPECTED BY generateData ----
+# # β_ir (I x R): item–rater base difficulty (start from item + rater severity)
+# beta_ir <- outer(beta_i, rep(1, R)) 
 
-## ---- ITEM PARAMETERS ----
-l_lambda <- rnorm(I - 1, 0, 0.3); l_lambda[I] <- -sum(l_lambda[1:(I - 1)])  # sum-to-zero on log-λ
-lambda   <- l_lambda
-beta_i   <- rnorm(I - 1, 0, 0.5); beta_i[I] <- -sum(beta_i[1:(I - 1)])      # item main effect
-delta    <- rnorm(K - 1, 1, 1)                                              # base step vector
+# # ρ_rk (R x (K-1)): rater step adjustments (start at 0)
+# rho_rk <- matrix(0, nrow = R, ncol = K - 1)
 
-## ---- BUILD MODEL MATRICES EXPECTED BY generateData ----
-# β_ir (I x R): item–rater base difficulty (start from item + rater severity)
-beta_ir <- outer(beta_i, rep(1, R)) + matrix(R_tau[, 1], nrow = I, ncol = R, byrow = TRUE)
+# # Δ_ik (I x (K-1)): item-specific steps (replicate delta across items)
+# delta_ik <- matrix(delta, nrow = I, ncol = K - 1, byrow = TRUE)
 
-# ρ_rk (R x (K-1)): rater step adjustments (start at 0)
-rho_rk <- matrix(0, nrow = R, ncol = K - 1)
+# ## ---- LIGHT IDENTIFIABILITY (center steps and β_ir interaction) ----
+# # center steps within item
+# delta_ik <- sweep(delta_ik, 1, rowMeans(delta_ik), FUN = "-")
+# # center rater step effects within rater
+# rho_rk   <- sweep(rho_rk, 1, rowMeans(rho_rk), FUN = "-")
+# # make β_ir a pure interaction (remove row/col means)
+# beta_ir  <- beta_ir -
+#             matrix(rowMeans(beta_ir), nrow = I, ncol = R, byrow = FALSE) -
+#             matrix(colMeans(beta_ir), nrow = I, ncol = R, byrow = TRUE) +
+#             mean(beta_ir)
 
-# Δ_ik (I x (K-1)): item-specific steps (replicate delta across items)
-delta_ik <- matrix(delta, nrow = I, ncol = K - 1, byrow = TRUE)
+# ## ---- DESIGN (subjects × raters, then expand by items) ----
+# design <- build_design(N, R, I, sp)   # uses your existing helper
+# PPi <- design$PPi; RRi <- design$RRi; ARi <- design$ARi; II <- design$II
 
-## ---- LIGHT IDENTIFIABILITY (center steps and β_ir interaction) ----
-# center steps within item
-delta_ik <- sweep(delta_ik, 1, rowMeans(delta_ik), FUN = "-")
-# center rater step effects within rater
-rho_rk   <- sweep(rho_rk, 1, rowMeans(rho_rk), FUN = "-")
-# make β_ir a pure interaction (remove row/col means)
-beta_ir  <- beta_ir -
-            matrix(rowMeans(beta_ir), nrow = I, ncol = R, byrow = FALSE) -
-            matrix(colMeans(beta_ir), nrow = I, ncol = R, byrow = TRUE) +
-            mean(beta_ir)
+# ## ---- ABILITIES ----
+# eta_uni <- rnorm(N, 0, 1)
 
-## ---- DESIGN (subjects × raters, then expand by items) ----
-design <- build_design(N, R, I, sp)   # uses your existing helper
-PPi <- design$PPi; RRi <- design$RRi; ARi <- design$ARi; II <- design$II
+# ## ---- SIMULATE (NO AR) ----
+# Data_uni_noAR <- generateData(
+#   eta = eta_uni, N = N, R = R, tot = length(PPi),
+#   PPi = PPi, II = II, RRi = RRi, ARi = ARi,
+#   lambda = lambda,                # log-scale λ_i (φ_ir = exp(λ_i + R_φ_r))
+#   beta_ir = beta_ir,              # I x R
+#   rho_rk  = rho_rk,               # R x (K-1)
+#   delta_ik = delta_ik,            # I x (K-1)
+#   R_tau = R_tau, R_phi = R_phi,
+#   use_AR = FALSE, K = K
+# )
 
-## ---- ABILITIES ----
-eta_uni <- rnorm(N, 0, 1)
+# eta_bi <- draw_eta(
+#   N, "bimodal",
+#   mix_mu = c(-2, 2), mix_sd = c(1, 1), mix_w = c(0.5, 0.5)
+# )$eta
+# # ---- Scenario: BIMODAL + NO AR ----
+# Data_bi_noAR <- generateData(
+#   eta = eta_uni, N = N, R = R, tot = length(PPi),
+#   PPi = PPi, II = II, RRi = RRi, ARi = ARi,
+#   lambda = lambda,                # log-scale λ_i (φ_ir = exp(λ_i + R_φ_r))
+#   beta_ir = beta_ir,              # I x R
+#   rho_rk  = rho_rk,               # R x (K-1)
+#   delta_ik = delta_ik,            # I x (K-1)
+#   R_tau = R_tau, R_phi = R_phi,
+#   use_AR = FALSE, K = K)
 
-## ---- SIMULATE (NO AR) ----
-Data_uni_noAR <- generateData(
-  eta = eta_uni, N = N, R = R, tot = length(PPi),
-  PPi = PPi, II = II, RRi = RRi, ARi = ARi,
-  lambda = lambda,                # log-scale λ_i (φ_ir = exp(λ_i + R_φ_r))
-  beta_ir = beta_ir,              # I x R
-  rho_rk  = rho_rk,               # R x (K-1)
-  delta_ik = delta_ik,            # I x (K-1)
-  R_tau = R_tau, R_phi = R_phi,
-  use_AR = FALSE, K = K
-)
-
-eta_bi <- draw_eta(
-  N, "bimodal",
-  mix_mu = c(-2, 2), mix_sd = c(1, 1), mix_w = c(0.5, 0.5)
-)$eta
-# ---- Scenario: BIMODAL + NO AR ----
-Data_bi_noAR <- generateData(
-  eta = eta_uni, N = N, R = R, tot = length(PPi),
-  PPi = PPi, II = II, RRi = RRi, ARi = ARi,
-  lambda = lambda,                # log-scale λ_i (φ_ir = exp(λ_i + R_φ_r))
-  beta_ir = beta_ir,              # I x R
-  rho_rk  = rho_rk,               # R x (K-1)
-  delta_ik = delta_ik,            # I x (K-1)
-  R_tau = R_tau, R_phi = R_phi,
-  use_AR = FALSE, K = K)
-
-# ---- Save (clear, scenario-specific filenames) ----
-dir.create(here::here("data", "simulated"), showWarnings = FALSE, recursive = TRUE)
-saveRDS(Data_uni_noAR, here("data","simulated","data_unimodal_noAR.rds"))
-saveRDS(Data_bi_noAR,  here("data","simulated","data_bimodal_noAR.rds"))
+# # ---- Save (clear, scenario-specific filenames) ----
+# dir.create(here::here("data", "simulated"), showWarnings = FALSE, recursive = TRUE)
+# saveRDS(Data_uni_noAR, here("data","simulated","data_unimodal_noAR.rds"))
+# saveRDS(Data_bi_noAR,  here("data","simulated","data_bimodal_noAR.rds"))
 
