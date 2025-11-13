@@ -65,7 +65,7 @@ modelCode <- nimbleCode({
   for(i in 1:I) {
     ## parameter for the first category is set to 0
     d_ik[i, 1] <- 0
-    ## other categoires: constraints on the sum to zero
+    ## other categories: constraints on the sum to zero
     for(k in 2:(K-1)) {
       d_ik[i, k] ~ dnorm(0, var = 1)
     }  
