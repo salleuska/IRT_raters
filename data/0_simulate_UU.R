@@ -173,7 +173,7 @@ generateData_uto <- function(eta, N, I, R, K,
 }
 
 ## -----------------------------------------------------------
-## 5. Full run + saveRDS
+## 5. Unimodal ability scenario
 ## -----------------------------------------------------------
 set.seed(99)
 
@@ -221,3 +221,42 @@ out <- list(
 
 dir.create(here("data","simulated"), showWarnings = FALSE, recursive = TRUE)
 saveRDS(out, here("data","simulated","uto_sim_unimodal.rds"))
+
+## -----------------------------------------------------------
+## 6. Bimodal ability scenario 
+## -----------------------------------------------------------
+
+## bimodal abilities (finite Normal mixture for simulation)
+eta_bi <- draw_eta(
+  N,
+  latent_scenario = "bimodal",
+  mix_mu = c(-2, 2),
+  mix_sd = c(1, 1),
+  mix_w  = c(0.5, 0.5)
+)$eta
+
+## generate data with the SAME true item/rater parameters
+Data_bi <- generateData_uto(
+  eta = eta_bi,
+  N = N, I = I, R = R, K = K,
+  PPi = PPi, RRi = RRi, II = II,
+  alpha_i        = true_par$alpha_i,
+  trans_alpha_r  = true_par$trans_alpha_r,
+  beta_ir        = true_par$beta_ir,
+  category_est_r = true_par$category_est_r,
+  category_est_i = true_par$category_est_i
+)
+
+## pack and save
+out_bi <- list(
+  y              = Data_bi$y,
+  eta_true       = eta_bi,
+  PPi = PPi, RRi = RRi, II = II,
+  alpha_i_true        = true_par$alpha_i,
+  trans_alpha_r_true  = true_par$trans_alpha_r,
+  beta_ir_true        = true_par$beta_ir,
+  category_est_r_true = true_par$category_est_r,
+  category_est_i_true = true_par$category_est_i
+)
+
+saveRDS(out_bi, here("data","simulated","uto_sim_bimodal.rds"))
