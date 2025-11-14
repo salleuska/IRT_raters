@@ -235,6 +235,9 @@ eta_bi <- draw_eta(
   mix_w  = c(0.5, 0.5)
 )$eta
 
+## Center the generated abiltities
+eta_bi <- (eta_bi - mean(eta_bi))/sd(eta_bi)
+
 ## generate data with the SAME true item/rater parameters
 Data_bi <- generateData_uto(
   eta = eta_bi,

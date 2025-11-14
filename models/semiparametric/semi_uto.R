@@ -27,25 +27,74 @@ modelCode <- nimbleCode({
   # CRP for clustering individual effects
   zi[1:P] ~ dCRP(alpha_dp, size = P)
   alpha_dp ~ dgamma(a, b)  
-  ## Mixture component parameter drawn from the base measure
-  for(j in 1:P) {
-    eta[j] ~ dnorm(mu[j], var = s2[j])  
-    mu[j] <- muTilde[zi[j]]                 
-    s2[j] <- s2Tilde[zi[j]]   
 
+  ##----------------------------##
+  ## DP mixture on raw abilities
+  ##----------------------------##
+
+  for (j in 1:P) {
+    eta_raw[j] ~ dnorm(mu[j], var = s2[j])   # raw ability from mixture
+    mu[j]      <- muTilde[zi[j]]             
+    s2[j]      <- s2Tilde[zi[j]]   
   }
-  
-  for(m in 1:M) {
-    muTilde[m] ~ dnorm(0, var = s2_mu)
-    s2Tilde[m] ~ dinvgamma(nu1, nu2)
+
+  for (m in 1:M) {
+    muTilde[m]  ~ dnorm(0, var = s2_mu)
+    s2Tilde[m]  ~ dinvgamma(nu1, nu2)
   }
+
   
-  # ## constraint - centering
-  # mean_eta <- mean(eta_raw[1:P])                 
-  # sd_eta <- sd(eta_raw[1:P])                 
-  # for(j in 1:P) {
-  #   eta[j] <- (eta_raw[j] - mean_eta)/sd_eta
+  ##------------------------------------------------------##
+  ## TO CHECK
+  ## IDENTIFIABILITY: Li–Müller centering + variance fix
+  ##------------------------------------------------------##
+
+  # cluster counts → mixture weights (CRP implied)
+  for (m in 1:M) {
+    n_m[m] <- sum(zi[1:P] == m)
+    w[m]   <- n_m[m] / P
+  }
+
+  # mixture mean
+  mu_mix <- sum(w[1:M] * muTilde[1:M])
+
+  # mixture 2nd raw moment
+  m2_mix <- sum(w[1:M] * (muTilde[1:M]^2 + s2Tilde[1:M]))
+
+  # mixture variance
+  var_mix <- m2_mix - mu_mix^2
+  sd_mix  <- sqrt(var_mix)
+
+  # final identified latent trait
+  for (j in 1:P) {
+    eta[j] <- (eta_raw[j] - mu_mix) / sd_mix
+  }
+
+  # ##----------------------------##
+  # ## IDENTIFIABILITY: centers eta_raw
+  # ##----------------------------##
+
+  # # global mean of raw abilities
+  # eta_mean <- mean(eta_raw[1:P])
+
+  # # center
+  # for (j in 1:P) {
+  #   eta[j] <- eta_raw[j] - eta_mean
   # }
+
+  # ## Mixture component parameter drawn from the base measure
+  # for(j in 1:P) {
+  #   eta[j] ~ dnorm(mu[j], var = s2[j])  
+  #   mu[j] <- muTilde[zi[j]]                 
+  #   s2[j] <- s2Tilde[zi[j]]   
+
+  # }
+  
+  # for(m in 1:M) {
+  #   muTilde[m] ~ dnorm(0, var = s2_mu)
+  #   s2Tilde[m] ~ dinvgamma(nu1, nu2)
+  # }
+  
   
   ##----------------------------##
   # Item discrimination
