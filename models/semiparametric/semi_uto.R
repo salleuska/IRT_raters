@@ -45,29 +45,24 @@ modelCode <- nimbleCode({
 
   
   ##------------------------------------------------------##
-  ## TO CHECK
-  ## IDENTIFIABILITY: Li–Müller centering + variance fix
+  ## IDENTIFIABILITY: center + scale eta_raw (sample-based)
   ##------------------------------------------------------##
 
-  # cluster counts → mixture weights (CRP implied)
-  for (m in 1:M) {
-    n_m[m] <- sum(zi[1:P] == m)
-    w[m]   <- n_m[m] / P
+  # sample mean of raw abilities
+  eta_mean <- mean(eta_raw[1:P])
+
+  # center
+  for (j in 1:P) {
+    eta_centered[j] <- eta_raw[j] - eta_mean
   }
 
-  # mixture mean
-  mu_mix <- sum(w[1:M] * muTilde[1:M])
+  # sample variance and sd
+  eta_var <- sum(eta_centered[1:P]^2) / (P - 1)
+  eta_sd  <- sqrt(eta_var)
 
-  # mixture 2nd raw moment
-  m2_mix <- sum(w[1:M] * (muTilde[1:M]^2 + s2Tilde[1:M]))
-
-  # mixture variance
-  var_mix <- m2_mix - mu_mix^2
-  sd_mix  <- sqrt(var_mix)
-
-  # final identified latent trait
+  # standardized abilities used in the likelihood
   for (j in 1:P) {
-    eta[j] <- (eta_raw[j] - mu_mix) / sd_mix
+    eta[j] <- eta_centered[j] / eta_sd
   }
 
   # ##----------------------------##
